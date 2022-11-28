@@ -366,6 +366,18 @@ CGameObject * CGameInstance::Get_Player()
 	return m_pPipeLine->Get_Player();
 }
 
+void CGameInstance::Set_PlayerPos(_float4 _vPos)
+{
+	if (nullptr == m_pPipeLine)
+		return;
+	return m_pPipeLine->Set_PlayerPos(_vPos);
+}
+
+_float4 CGameInstance::Get_PlayerPos()
+{
+	return m_pPipeLine->Get_PlayerPos();
+}
+
 DIRLIGHTDESC * CGameInstance::Get_DirLightDesc(_uint _iLv, _uint iIndex)
 {
 	if (nullptr == m_pLight_Manager)
@@ -411,6 +423,14 @@ HRESULT CGameInstance::Light_Off(_uint iLv, CLight_Manager::LIGHTTYPE eLightType
 		return E_FAIL;
 
 	return m_pLight_Manager->Light_Off(iLv, eLightType, _iIndex);
+}
+
+_float4x4 * CGameInstance::Get_LightMatrix(_uint iLv, CLight_Manager::LIGHTNUM _eLightNum, CLight_Manager::LIGHTMATRIX _eMatrix)
+{
+	if (nullptr == m_pLight_Manager)
+		return nullptr;
+
+	return m_pLight_Manager->Get_LightMatrix(iLv, _eLightNum, _eMatrix);
 }
 
 const _float & CGameInstance::Rand_Float(const _float & _fMin, const _float & _fMax)

@@ -52,6 +52,26 @@ HRESULT CLamp::Initialize(void * pArg)
 	LightDesc.vDiffuse = CLIENT_RGB(255.f, 127.f, 0.f);
 	LightDesc.vAmbient = _float4(0.3f, 0.3f, 0.3f, 1.f);
 	LightDesc.vSpecular = _float4(0.1f, 0.1f, 0.1f, 1.f);
+	LightDesc.LightViewMatrix = new _float4x4;
+
+	_vector _vLook, _vRight, _vUp;
+
+	_vLook = XMVectorSetW(XMVector3Normalize(XMVectorSet(45.f, -25.f, 45.f, 1.f) - _vPos), 0.f);
+	_vRight = XMVectorSetW(XMVector3Normalize(XMVector3Cross(XMVectorSet(0.f, 1.f, 0.f, 0.f), _vLook)), 0.f);
+	_vUp = XMVectorSetW(XMVector3Normalize(XMVector3Cross(_vLook, _vRight)), 0.f);
+
+	_matrix _World;
+	_World.r[0] = _vRight;
+	_World.r[1] = _vUp;
+	_World.r[2] = _vLook;
+	_World.r[3] = _vPos;
+	_World = XMMatrixInverse(nullptr, _World);
+	_World = XMMatrixTranspose(_World);
+
+	XMStoreFloat4x4(LightDesc.LightViewMatrix, _World);
+
+	LightDesc.LightProjMatrix = new _float4x4;
+	XMStoreFloat4x4(LightDesc.LightProjMatrix, XMMatrixTranspose(XMMatrixPerspectiveFovLH(XMConvertToRadians(160.f), 1280.f / 720.f, 0.2f, 300.f)));
 	
 	m_iLightIndex = pGameInstance->Add_Light(m_pDevice, m_pContext, LEVEL_STAGE_LAST, CLight_Manager::STATICPOINTLIHGT, LightDesc);
 

@@ -185,7 +185,7 @@ HRESULT CSaber::Render_Shadow()
 
 		DIRLIGHTDESC* _DirLightDesc = pGameInstance->Get_DirLightDesc(g_eCurLevel, 0);
 
-		if (FAILED(m_pShaderCom->Set_RawValue("g_ViewMatrix", (_DirLightDesc->LightDirInverseMatrix), sizeof(_float4x4))))
+		if (FAILED(m_pShaderCom->Set_RawValue("g_ViewMatrix", (_DirLightDesc->LightViewMatrix), sizeof(_float4x4))))
 			return E_FAIL;
 
 		if (FAILED(m_pShaderCom->Begin(11)))

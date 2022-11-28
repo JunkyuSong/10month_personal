@@ -203,6 +203,11 @@ void CPlayer::Tick(_float fTimeDelta)
 	Update_Collider();
 
 	Check_MotionTrail(fTimeDelta);
+
+	AUTOINSTANCE(CGameInstance, _pGame);
+	_float4	_vPos;
+	XMStoreFloat4(&_vPos, m_pTransformCom->Get_State(CTransform::STATE_POSITION));
+	_pGame->Set_PlayerPos(_vPos);
 }
 
 void CPlayer::LateTick(_float fTimeDelta)
@@ -315,15 +320,17 @@ HRESULT CPlayer::Render_Shadow()
 		m_pShaderCom->Set_RawValue("g_vCamPosition", &_vCamPosition, sizeof(_float4));
 
 		DIRLIGHTDESC* _DirLightDesc = _pInstance->Get_DirLightDesc(g_eCurLevel, 0);
-		if (_DirLightDesc != nullptr)
+
+		
+		if (_pInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_FIRST, CLight_Manager::LIGHT_VIEW) != nullptr)
 		{
-			if (FAILED(m_pShaderCom->Set_RawValue("g_ViewMatrix", (_DirLightDesc->LightDirInverseMatrix), sizeof(_float4x4))))
+			if (FAILED(m_pShaderCom->Set_RawValue("g_ViewMatrix", _pInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_FIRST, CLight_Manager::LIGHT_VIEW), sizeof(_float4x4))))
+				return E_FAIL;
+			if (FAILED(m_pShaderCom->Set_RawValue("g_ProjMatrix", _pInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_FIRST, CLight_Manager::LIGHT_PROJ), sizeof(_float4x4))))
 				return E_FAIL;
 			if (FAILED(m_pModelCom->Render(m_pShaderCom, 8, i)))
 				return E_FAIL;
 		}
-
-
 	}
 	return S_OK;
 }
@@ -3283,5 +3290,5 @@ void CPlayer::Free()
 	Safe_Release(m_pStatusCom);
 	Safe_Release(m_pTarget);
 	Safe_Release(m_pNavigationCom);
-
+	//CGameInstance::Get_Instance()->Set_Player(nullptr);
 }

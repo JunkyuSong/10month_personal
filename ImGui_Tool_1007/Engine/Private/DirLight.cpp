@@ -51,7 +51,7 @@ HRESULT CDirLight::Initialize(const DIRLIGHTDESC & LightDesc)
 
 		_LightDirInverseMatrix = XMMatrixTranspose(_LightDirInverseMatrix);
 
-		XMStoreFloat4x4(m_LightDesc.LightDirInverseMatrix, _LightDirInverseMatrix);
+		XMStoreFloat4x4(m_LightDesc.LightViewMatrix, _LightDirInverseMatrix);
 	}
 	
 	return S_OK;
@@ -95,7 +95,7 @@ HRESULT CDirLight::Render(CShader * pShader, CVIBuffer_Rect * pVIBuffer, CFrustu
 	if (FAILED(pShader->Set_RawValue("g_vLightDir", &m_LightDesc.vDirection, sizeof(_float4))))
 		return E_FAIL;
 
-	if (FAILED(pShader->Set_RawValue("g_LightView", m_LightDesc.LightDirInverseMatrix, sizeof(_float4x4))))
+	if (FAILED(pShader->Set_RawValue("g_LightView", m_LightDesc.LightViewMatrix, sizeof(_float4x4))))
 		return E_FAIL;
 
 	if (FAILED(pShader->Set_RawValue("g_vLightDiffuse", &m_LightDesc.vDiffuse, sizeof(_float4))))
@@ -132,5 +132,6 @@ void CDirLight::Free()
 	Safe_Release(m_pDevice);
 	Safe_Release(m_pContext);
 
-	Safe_Delete(m_LightDesc.LightDirInverseMatrix);
+	Safe_Delete(m_LightDesc.LightViewMatrix);
+	Safe_Delete(m_LightDesc.LightProjMatrix);
 }

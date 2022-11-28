@@ -111,13 +111,15 @@ HRESULT CStage_Lobby::Render_Shadow()
 
 			DIRLIGHTDESC* _DirLightDesc = pGameInstance->Get_DirLightDesc(g_eCurLevel, 0);
 
-		if (FAILED(m_pShaderCom->Set_RawValue("g_ViewMatrix", (_DirLightDesc->LightDirInverseMatrix), sizeof(_float4x4))))
-		return E_FAIL;
+		if (FAILED(m_pShaderCom->Set_RawValue("g_ViewMatrix", (_DirLightDesc->LightViewMatrix), sizeof(_float4x4))))
+			return E_FAIL;
+		if (FAILED(m_pShaderCom->Set_RawValue("g_ProjMatrix", pGameInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_FIRST, CLight_Manager::LIGHT_PROJ), sizeof(_float4x4))))
+			return E_FAIL;
 
 		if (FAILED(m_pShaderCom->Begin(11)))
-		return E_FAIL;
+			return E_FAIL;
 		if (FAILED(m_pModelCom->Render(i)))
-		return E_FAIL;
+			return E_FAIL;
 	}
 
 

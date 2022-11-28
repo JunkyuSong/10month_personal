@@ -3,6 +3,8 @@
 #include "VIBuffer_Rect.h"
 #include "Frustum.h"
 
+#include "Light_Manager.h"
+
 CStaticPointLight::CStaticPointLight(ID3D11Device * pDevice, ID3D11DeviceContext * pContext)
 	: CPointLight(pDevice, pContext)
 {
@@ -27,6 +29,9 @@ HRESULT CStaticPointLight::Render(CShader * pShader, CVIBuffer_Rect * pVIBuffer,
 	{
 		return S_OK;
 	}
+
+	//CLight_Manager::Get_Instance()->CheckDisLight(m_LightDesc.LightViewMatrix, m_LightDesc.LightProjMatrix, XMLoadFloat4(&m_LightDesc.vPosition));
+
 
 	if (FAILED(pShader->Set_RawValue("g_vLightPos", &m_LightDesc.vPosition, sizeof(_float4))))
 		return E_FAIL;
@@ -65,4 +70,6 @@ CStaticPointLight * CStaticPointLight::Create(ID3D11Device * pDevice, ID3D11Devi
 
 void CStaticPointLight::Free()
 {
+	Safe_Delete(m_LightDesc.LightViewMatrix);
+	Safe_Delete(m_LightDesc.LightProjMatrix);
 }

@@ -12,6 +12,8 @@ class CLight_Manager final : public CBase
 
 public:
 	enum LIGHTTYPE { DIRLIGHT, DYNAMICPOINTLIHGT, STATICPOINTLIHGT, LIHGTEND };
+	enum LIGHTNUM { LIGHT_FIRST, LIGHT_SECOND, LIHGTNUM_END };
+	enum LIGHTMATRIX { LIGHT_VIEW, LIGHT_PROJ, LIHGTMATRIX_END };
 
 private:
 	CLight_Manager();
@@ -31,6 +33,10 @@ public:
 	_uint Add_Light(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, _uint iLv, LIGHTTYPE eLightType, const POINTLIGHTDESC& LightDesc, _float fSpeed = 0.f, _float fTime = 0.f);
 	HRESULT Render(class CShader* pShader, class CVIBuffer_Rect* pVIBuffer);
 
+	void	CheckDisLight(_float4x4* LightViewMatrix, _float4x4* LightProjMatrix, _vector vLightPos);
+
+	_float4x4*	Get_LightMatrix(_uint iLv, LIGHTNUM _eLightNum, LIGHTMATRIX _eMatrix) { return m_Light[_eLightNum][_eMatrix]; }
+
 public:
 	HRESULT	Light_On(_uint iLv, LIGHTTYPE eLightType, _uint _iIndex);
 	HRESULT	Light_Off(_uint iLv, LIGHTTYPE eLightType, _uint _iIndex);
@@ -48,6 +54,11 @@ private:
 
 	vector<class CDirLight*>*					m_DirLights = nullptr;
 	vector<class CDirLight*>*					m_DeadDirLights = nullptr;
+
+private:
+	_float4x4*									m_Light[LIHGTNUM_END][LIHGTMATRIX_END];
+	_float 										m_LightDis[LIHGTNUM_END];
+	_float4										m_vPlayerPos;
 
 public:
 	virtual void Free() override;

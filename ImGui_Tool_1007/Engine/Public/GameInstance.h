@@ -88,6 +88,8 @@ public: /* For.PipeLine */
 	_float4 Get_CamPosition() const;
 	HRESULT Set_Player(CGameObject* _pPlayer);
 	CGameObject* Get_Player();
+	void Set_PlayerPos(_float4 _vPos);
+	_float4		Get_PlayerPos();
 
 public: /* For.Light_Manager */
 	DIRLIGHTDESC* Get_DirLightDesc(_uint iLv, _uint iIndex);
@@ -96,6 +98,7 @@ public: /* For.Light_Manager */
 	_uint Add_Light(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, _uint iLv, CLight_Manager::LIGHTTYPE eLightType, const POINTLIGHTDESC& LightDesc, _float fSpeed = 0.f, _float fTime = 0.f);
 	HRESULT Light_On(_uint iLv, CLight_Manager::LIGHTTYPE eLightType, _uint _iIndex);
 	HRESULT Light_Off(_uint iLv, CLight_Manager::LIGHTTYPE eLightType, _uint _iIndex);
+	_float4x4*	Get_LightMatrix(_uint iLv, CLight_Manager::LIGHTNUM _eLightNum, CLight_Manager::LIGHTMATRIX _eMatrix);
 
 public:/* For. Random_Manager*/
 	const _float &	Rand_Float(const _float & _fMin, const _float & _fMax);

@@ -349,8 +349,8 @@ HRESULT CRenderer::Render_Lights()
 		return E_FAIL;
 	if (FAILED(m_pShader->Set_RawValue("g_ProjMatrix", &m_ProjMatrix, sizeof(_float4x4))))
 		return E_FAIL;
-
-	CPipeLine*			pPipeLine = GET_INSTANCE(CPipeLine);
+	
+	AUTOINSTANCE(CPipeLine, pPipeLine);
 
 	_float4x4			ViewMatrixInv;
 	_float4x4			ProjMatrixInv;
@@ -364,8 +364,6 @@ HRESULT CRenderer::Render_Lights()
 		return E_FAIL;
 	if (FAILED(m_pShader->Set_RawValue("g_vCamPosition", &pPipeLine->Get_CamPosition(), sizeof(_float4))))
 		return E_FAIL;
-
-	RELEASE_INSTANCE(CPipeLine);
 
 	if (FAILED(m_pTarget_Manager->Bind_SRV(TEXT("Target_Normal"), m_pShader, "g_NormalTexture")))
 		return E_FAIL;
@@ -403,14 +401,30 @@ HRESULT CRenderer::Render_Blend()
 		return E_FAIL;
 	AUTOINSTANCE(CGameInstance, _pInstance);
 	AUTOINSTANCE(CLevel_Manager, _pLv);
-	DIRLIGHTDESC* _DirLightDesc = _pInstance->Get_DirLightDesc(_pLv->Get_CurLv(), 0);
+	//DIRLIGHTDESC* _DirLightDesc = _pInstance->Get_DirLightDesc(_pLv->Get_CurLv(), 0);
+	_float4x4* _LightView = nullptr;
+	_float4x4* _LightProj = nullptr;
 
-	if (_DirLightDesc != nullptr)
+	_bool		_bView = false;
+	
+	_LightView = _pInstance->Get_LightMatrix(_pLv->Get_CurLv(), CLight_Manager::LIGHT_FIRST, CLight_Manager::LIGHT_VIEW);
+	_LightProj = _pInstance->Get_LightMatrix(_pLv->Get_CurLv(), CLight_Manager::LIGHT_FIRST, CLight_Manager::LIGHT_PROJ);
+	if (_LightView != nullptr)
 	{
-		if (FAILED(m_pShader->Set_RawValue("g_LightView", (_DirLightDesc->LightDirInverseMatrix), sizeof(_float4x4))))
+		if (FAILED(m_pShader->Set_RawValue("g_LightView", _LightView, sizeof(_float4x4))))
 			return E_FAIL;
 	}
-
+	else
+	{
+		_LightView = new _float4x4;
+		XMStoreFloat4x4(_LightView, XMMatrixIdentity());
+		_LightProj = new _float4x4;
+		XMStoreFloat4x4(_LightProj, XMMatrixIdentity());
+		_bView = true;
+		if (FAILED(m_pShader->Set_RawValue("g_LightView", _LightView, sizeof(_float4x4))))
+			return E_FAIL;
+	}
+	
 	AUTOINSTANCE(CPipeLine, _pPipeLine);
 
 	_float4x4			ViewMatrixInv;
@@ -425,7 +439,7 @@ HRESULT CRenderer::Render_Blend()
 
 
 
-	if (FAILED(m_pShader->Set_RawValue("g_LProjMatrix", &_pPipeLine->Get_TransformFloat4x4_TP(CPipeLine::D3DTS_PROJ), sizeof(_float4x4))))
+	if (FAILED(m_pShader->Set_RawValue("g_LProjMatrix", _LightProj, sizeof(_float4x4))))
 		return E_FAIL;
 
 	if (FAILED(m_pTarget_Manager->Bind_SRV(TEXT("Target_Diffuse"), m_pShader, "g_DiffuseTexture")))
@@ -446,6 +460,12 @@ HRESULT CRenderer::Render_Blend()
 	m_pShader->Begin(3);
 
 	m_pVIBuffer->Render();
+
+	if (_bView)
+	{
+		Safe_Delete(_LightView);
+		Safe_Delete(_LightProj);
+	}
 
 	return S_OK;
 }

@@ -215,7 +215,7 @@ HRESULT CExtra01::Render_Shadow()
 		DIRLIGHTDESC* _DirLightDesc = _pInstance->Get_DirLightDesc(g_eCurLevel, 0);
 		if (_DirLightDesc != nullptr)
 		{
-			if (FAILED(m_pShaderCom->Set_RawValue("g_ViewMatrix", (_DirLightDesc->LightDirInverseMatrix), sizeof(_float4x4))))
+			if (FAILED(m_pShaderCom->Set_RawValue("g_ViewMatrix", (_DirLightDesc->LightViewMatrix), sizeof(_float4x4))))
 				return E_FAIL;
 			if (FAILED(m_pModelCom->Render(m_pShaderCom, 8, i)))
 				return E_FAIL;

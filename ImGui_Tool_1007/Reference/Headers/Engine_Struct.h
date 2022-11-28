@@ -29,7 +29,8 @@ namespace Engine
 		XMFLOAT4		vAmbient;
 		XMFLOAT4		vSpecular;
 
-		XMFLOAT4X4*		LightDirInverseMatrix = nullptr;
+		XMFLOAT4X4*		LightViewMatrix = nullptr;
+		XMFLOAT4X4*		LightProjMatrix = nullptr;
 		
 	}DIRLIGHTDESC;
 
@@ -47,6 +48,9 @@ namespace Engine
 		XMFLOAT4		vDiffuse;
 		XMFLOAT4		vAmbient;
 		XMFLOAT4		vSpecular;
+
+		XMFLOAT4X4*		LightViewMatrix = nullptr;
+		XMFLOAT4X4*		LightProjMatrix = nullptr;
 
 	}POINTLIGHTDESC;
 

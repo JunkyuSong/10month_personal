@@ -4,6 +4,9 @@
 #include "StaticPointLight.h"
 #include "DynamicPointLight.h"
 #include "Frustum.h"
+#include "PipeLine.h"
+#include "Transform.h"
+#include "Level_Manager.h"
 
 IMPLEMENT_SINGLETON(CLight_Manager)
 
@@ -29,6 +32,31 @@ HRESULT CLight_Manager::Initialize(_uint iLv)
 
 void CLight_Manager::Tick(_float fTimeDelta)
 {
+	m_LightDis[LIGHT_FIRST] = 100.f;
+	m_LightDis[LIGHT_SECOND] = 100.f;
+
+	m_Light[LIGHT_FIRST][LIGHT_VIEW] = nullptr;
+	m_Light[LIGHT_FIRST][LIGHT_PROJ] = nullptr;
+	_uint _iCurLv = CLevel_Manager::Get_Instance()->Get_CurLv();
+	if (m_DirLights != nullptr && m_DirLights[_iCurLv].size() > 0)
+	{
+		if (m_DirLights[_iCurLv][0])
+		{
+			DIRLIGHTDESC* dirlightdesc = m_DirLights[CLevel_Manager::Get_Instance()->Get_CurLv()][0]->Get_LightDesc();
+			m_Light[LIGHT_FIRST][LIGHT_VIEW] = dirlightdesc->LightViewMatrix;
+			m_Light[LIGHT_FIRST][LIGHT_PROJ] = dirlightdesc->LightProjMatrix;
+			m_LightDis[LIGHT_FIRST] = 0.f;
+		}
+	}
+
+
+	m_Light[LIGHT_SECOND][LIGHT_VIEW] = nullptr;
+	m_Light[LIGHT_SECOND][LIGHT_PROJ] = nullptr;
+
+
+	m_vPlayerPos = CPipeLine::Get_Instance()->Get_PlayerPos();
+	
+	
 	for (_uint i = 0; i < m_iNumLevels; ++i)
 	{
 		for (_uint j = 0 ; j < m_DynamicPointLights[i].size(); ++j)
@@ -42,6 +70,26 @@ void CLight_Manager::Tick(_float fTimeDelta)
 				}
 			}
 
+		}
+	}
+	POINTLIGHTDESC* _pointlightdesc = nullptr;
+	for (_uint i = 0; i < m_iNumLevels; ++i)
+	{
+		for (_uint j = 0; j < m_StaticPointLights[i].size(); ++j)
+		{
+			/*if (m_DynamicPointLights[i][j] && m_DynamicPointLights[i][j]->Tick(fTimeDelta) == false)
+			{
+				if (m_DeadDynamicPointLights[i][j] == nullptr)
+				{
+					m_DeadDynamicPointLights[i][j] = m_DynamicPointLights[i][j];
+					m_DynamicPointLights[i][j] = nullptr;
+				}
+			}*/
+			_pointlightdesc = m_StaticPointLights[i][j]->Get_LightDesc();
+			if (CFrustum::Get_Instance()->isIn_WorldSpace(XMLoadFloat4(&_pointlightdesc->vPosition), _pointlightdesc->fRange))
+			{
+				CLight_Manager::Get_Instance()->CheckDisLight(_pointlightdesc->LightViewMatrix, _pointlightdesc->LightProjMatrix, XMLoadFloat4(&_pointlightdesc->vPosition));
+			}			
 		}
 	}
 	
@@ -137,6 +185,63 @@ HRESULT CLight_Manager::Render(CShader * pShader, CVIBuffer_Rect * pVIBuffer)
 	}
 
 	return S_OK;
+}
+
+void CLight_Manager::CheckDisLight(_float4x4 * LightViewMatrix, _float4x4 * LightProjMatrix, _vector vLightPos)
+{
+	//nullptr인지 아닌지 체크
+
+	if (!m_Light[LIGHT_FIRST][LIGHT_VIEW])
+	{
+		m_LightDis[LIGHT_FIRST] = fabs(XMVector3Length(XMLoadFloat4(&m_vPlayerPos) - vLightPos).m128_f32[0]);
+		m_Light[LIGHT_FIRST][LIGHT_VIEW] = LightViewMatrix;
+		m_Light[LIGHT_FIRST][LIGHT_PROJ] = LightProjMatrix;
+		return;
+	}
+	else
+	{
+		if (!m_Light[LIGHT_SECOND][LIGHT_VIEW])
+		{
+			m_LightDis[LIGHT_SECOND] = fabs(XMVector3Length(XMLoadFloat4(&m_vPlayerPos) - vLightPos).m128_f32[0]);
+			m_Light[LIGHT_SECOND][LIGHT_VIEW] = LightViewMatrix;
+			m_Light[LIGHT_SECOND][LIGHT_PROJ] = LightProjMatrix;
+			return;
+		}
+	}
+	_float _vDistance = 
+	fabs(XMVector3Length(XMLoadFloat4(&m_vPlayerPos) - vLightPos).m128_f32[0]);
+	//여기부터 비교 시작
+	//먼저 first와 비교
+	if (m_LightDis[LIGHT_FIRST] > _vDistance)
+	{
+		//들어온 애가 더 가까우면
+		//2번째와 첫번째 비교
+		if (m_LightDis[LIGHT_FIRST] < m_LightDis[LIGHT_SECOND])
+		{
+			//만약 첫번째가 더 가까우면 세컨드에 새로 들어온 애 넣는다.
+			m_LightDis[LIGHT_SECOND] = _vDistance;
+			m_Light[LIGHT_SECOND][LIGHT_VIEW] = LightViewMatrix;
+			m_Light[LIGHT_SECOND][LIGHT_PROJ] = LightProjMatrix;
+			return;
+		}
+		else
+		{
+			//아닐경우 첫번째에 넣는다
+			m_LightDis[LIGHT_FIRST] = _vDistance;
+			m_Light[LIGHT_FIRST][LIGHT_VIEW] = LightViewMatrix;
+			m_Light[LIGHT_FIRST][LIGHT_PROJ] = LightProjMatrix;
+			return;
+		}
+	}
+	else if (m_LightDis[LIGHT_SECOND] > _vDistance)
+	{
+		//두번째와 비교하여 들어온 애가 더 가까우면?
+		m_LightDis[LIGHT_SECOND] = _vDistance;
+		m_Light[LIGHT_SECOND][LIGHT_VIEW] = LightViewMatrix;
+		m_Light[LIGHT_SECOND][LIGHT_PROJ] = LightProjMatrix;
+		return;
+	}
+
 }
 
 HRESULT CLight_Manager::Light_On(_uint iLv, LIGHTTYPE eLightType, _uint _iIndex)
@@ -236,6 +341,13 @@ HRESULT CLight_Manager::Clear(_uint iLv)
 	for (auto& pLight : m_DeadDynamicPointLights[iLv])
 		Safe_Release(pLight);
 	m_DeadDynamicPointLights[iLv].clear();
+
+	m_Light[LIGHT_FIRST][LIGHT_VIEW] = nullptr;
+	m_Light[LIGHT_FIRST][LIGHT_PROJ] = nullptr;
+
+	m_Light[LIGHT_SECOND][LIGHT_VIEW] = nullptr;
+	m_Light[LIGHT_SECOND][LIGHT_PROJ] = nullptr;
+
 	return S_OK;
 }
 

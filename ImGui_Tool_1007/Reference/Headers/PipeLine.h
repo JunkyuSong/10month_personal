@@ -20,6 +20,9 @@ public:
 	void Set_Player(CGameObject* _pPlayer) { m_pPlayer = _pPlayer; }
 	CGameObject*	Get_Player() { return m_pPlayer; }
 
+	void Set_PlayerPos(_float4 _vPos) { m_vPlayerPos = _vPos; }
+	_float4		Get_PlayerPos() { return m_vPlayerPos; }
+
 	void Set_Transform(TRANSFORMSTATE eTransformState, _fmatrix TransformMatrix);
 
 	_matrix Get_TransformMatrix(TRANSFORMSTATE eTransformState) const {
@@ -50,7 +53,8 @@ private:
 	_float4x4				m_TransformInverseMatrix[D3DTS_END];
 	_float4					m_vCamPosition;
 
-	CGameObject*			m_pPlayer;
+	CGameObject*			m_pPlayer = nullptr;
+	_float4					m_vPlayerPos;
 
 public:
 	virtual void Free() override;
