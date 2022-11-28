@@ -1,5 +1,6 @@
 #include "Client_Shader_Defines.hpp"
 matrix		g_WorldMatrix, g_ViewMatrix, g_ProjMatrix;
+matrix		g_ViewMatrix2, g_ProjMatrix2;
 float		g_fAlpha;
 float		g_fTime;
 
@@ -52,6 +53,19 @@ struct VS_OUT
 	float4		vLightViewPosition : TEXCOORD3;
 };
 
+struct VS_OUT_SHADOW2
+{
+	float4		vPosition : SV_POSITION;
+	float3		vNormal : NORMAL;
+	float2		vTexUV : TEXCOORD0;
+	float4		vProjPos : TEXCOORD1;
+	float3		vTangent : TANGENT;
+	float3		vBinormal : BINORMAL;
+	float4		vWorldPosition : TEXCOORD2;
+	float4		vLightViewPosition : TEXCOORD3;
+	float4		vProjPos2 : TEXCOORD4;
+};
+
 
 VS_OUT VS_MAIN(VS_IN In)
 {
@@ -87,6 +101,34 @@ VS_OUT VS_MAIN(VS_IN In)
 	return Out;
 }
 
+VS_OUT_SHADOW2 VS_SHADOW2(VS_IN In)
+{
+	VS_OUT_SHADOW2		Out = (VS_OUT_SHADOW2)0;
+
+	matrix		matWV2, matWVP2;
+
+	matWV2 = mul(g_WorldMatrix, g_ViewMatrix2);
+	matWVP2 = mul(matWV2, g_ProjMatrix2);
+
+	float		fWeightW = 1.f - (In.vBlendWeight.x + In.vBlendWeight.y + In.vBlendWeight.z);
+
+	float4x4	BoneMatrix = g_BoneMatrices.BoneMatrix[In.vBlendIndex.x] * In.vBlendWeight.x +
+		g_BoneMatrices.BoneMatrix[In.vBlendIndex.y] * In.vBlendWeight.y +
+		g_BoneMatrices.BoneMatrix[In.vBlendIndex.z] * In.vBlendWeight.z +
+		g_BoneMatrices.BoneMatrix[In.vBlendIndex.w] * fWeightW;
+
+	vector		vPosition = mul(vector(In.vPosition, 1.f), BoneMatrix);
+	Out.vNormal = mul(vector(In.vNormal, 0.f), BoneMatrix).xyz;
+	Out.vTangent = mul(vector(In.vTangent, 0.f), BoneMatrix).xyz;
+
+	Out.vPosition = mul(vPosition, matWVP2);
+	Out.vProjPos2 = Out.vPosition;
+
+	Out.vTexUV = In.vTexUV;
+
+	return Out;
+}
+
 struct PS_IN
 {
 	float4		vPosition : SV_POSITION;
@@ -96,6 +138,19 @@ struct PS_IN
 	float3		vTangent : TANGENT;
 	float3		vBinormal : BINORMAL;
 	float4		vWorldPosition : TEXCOORD2;
+};
+
+struct PS_IN_SHADOW2
+{
+	float4		vPosition : SV_POSITION;
+	float3		vNormal : NORMAL;
+	float2		vTexUV : TEXCOORD0;
+	float4		vProjPos : TEXCOORD1;
+	float3		vTangent : TANGENT;
+	float3		vBinormal : BINORMAL;
+	float4		vWorldPosition : TEXCOORD2;
+	float4		vLightViewPosition : TEXCOORD3;
+	float4		vProjPos2 : TEXCOORD4;
 };
 
 struct PS_OUT
@@ -109,6 +164,12 @@ struct PS_OUT
 struct PS_SHADOW_OUT
 {
 	float4		vShadowDepth : SV_TARGET0;
+};
+
+struct PS_SHADOW2_OUT
+{
+	//float4		vShadowDepth1 : SV_TARGET0;
+	float4		vShadowDepth2 : SV_TARGET1;
 };
 
 struct PS_OUT_NONLIGHT
@@ -157,6 +218,20 @@ PS_SHADOW_OUT PS_SHADOW(PS_IN In)
 
 	Out.vShadowDepth = vector(In.vProjPos.z / In.vProjPos.w, In.vProjPos.w / 300.f, 0.f, 0.0f);
 
+	return Out;
+}
+
+PS_SHADOW2_OUT PS_SHADOW2(PS_IN_SHADOW2 In)
+{
+	PS_SHADOW2_OUT		Out = (PS_SHADOW2_OUT)0;
+
+	vector vDiffuse = g_DiffuseTexture.Sample(DefaultSampler, In.vTexUV);
+
+	if (0 == vDiffuse.a)
+		discard;
+	
+	//Out.vShadowDepth1 = vector(In.vProjPos.z / In.vProjPos.w, In.vProjPos.w / 300.f, 0.f, 0.0f);
+	Out.vShadowDepth2 = vector(In.vProjPos2.z / In.vProjPos2.w, In.vProjPos2.w / 300.f, 0.f, 0.0f);
 
 	return Out;
 }
@@ -424,5 +499,15 @@ technique11 DefaultTechnique
 		VertexShader = compile vs_5_0 VS_MAIN();
 		GeometryShader = NULL;
 		PixelShader = compile ps_5_0 PS_SHADOW();
+	}
+
+	pass PASS_SHADOW2
+	{
+		SetRasterizerState(RS_Default);
+		SetDepthStencilState(DSS_Default, 0);
+		SetBlendState(BS_Default, float4(0.f, 0.f, 0.f, 0.f), 0xffffffff);
+		VertexShader = compile vs_5_0 VS_SHADOW2();
+		GeometryShader = NULL;
+		PixelShader = compile ps_5_0 PS_SHADOW2();
 	}
 }

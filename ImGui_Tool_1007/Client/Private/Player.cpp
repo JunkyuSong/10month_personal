@@ -330,6 +330,18 @@ HRESULT CPlayer::Render_Shadow()
 				return E_FAIL;
 			if (FAILED(m_pModelCom->Render(m_pShaderCom, 8, i)))
 				return E_FAIL;
+
+			if (_pInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_SECOND, CLight_Manager::LIGHT_VIEW) != nullptr)
+			{
+				if (FAILED(m_pShaderCom->Set_RawValue("g_ViewMatrix2", _pInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_SECOND, CLight_Manager::LIGHT_VIEW), sizeof(_float4x4))))
+					return E_FAIL;
+				if (FAILED(m_pShaderCom->Set_RawValue("g_ProjMatrix2", _pInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_SECOND, CLight_Manager::LIGHT_PROJ), sizeof(_float4x4))))
+					return E_FAIL;
+				if (FAILED(m_pModelCom->Render(m_pShaderCom, 9, i)))
+					return E_FAIL;
+			}
+
+			
 		}
 	}
 	return S_OK;

@@ -90,6 +90,9 @@ HRESULT CRenderer::Initialize_Prototype()
 	/* For.Target_TotalDepth */
 	if (FAILED(m_pTarget_Manager->Add_RenderTarget(m_pDevice, m_pContext, TEXT("Target_ShadowDepth"), iShadowMapCX, iShadowMapCY, DXGI_FORMAT_R32G32B32A32_FLOAT, &_float4(1.f, 1.f, 1.f, 1.f))))
 		return E_FAIL;
+	/* For.Target_TotalDepth */
+	if (FAILED(m_pTarget_Manager->Add_RenderTarget(m_pDevice, m_pContext, TEXT("Target_ShadowDepth2"), iShadowMapCX, iShadowMapCY, DXGI_FORMAT_R32G32B32A32_FLOAT, &_float4(1.f, 1.f, 1.f, 1.f))))
+		return E_FAIL;
 
 	/* For.MRT_Back */
 	if (FAILED(m_pTarget_Manager->Add_MRT(TEXT("MRT_Back"), TEXT("Target_BackBuffer"))))
@@ -97,6 +100,8 @@ HRESULT CRenderer::Initialize_Prototype()
 
 	/* For.MRT_Shadow */
 	if (FAILED(m_pTarget_Manager->Add_MRT(TEXT("MRT_Shadow"), TEXT("Target_ShadowDepth"))))
+		return E_FAIL;
+	if (FAILED(m_pTarget_Manager->Add_MRT(TEXT("MRT_Shadow"), TEXT("Target_ShadowDepth2"))))
 		return E_FAIL;
 
 	/* For.MRT_Deferred */
@@ -142,6 +147,8 @@ HRESULT CRenderer::Initialize_Prototype()
 		return E_FAIL;
 
 	if (FAILED(m_pTarget_Manager->Initialize_Debug(TEXT("Target_ShadowDepth"), 210.f, 350.f, 140.f, 140.f)))
+		return E_FAIL;
+	if (FAILED(m_pTarget_Manager->Initialize_Debug(TEXT("Target_ShadowDepth2"), 210.f, 490.f, 140.f, 140.f)))
 		return E_FAIL;
 
 	if (FAILED(m_pTarget_Manager->Initialize_Debug(TEXT("Target_Distortion"), 70.f, 490.f, 140.f, 140.f)))
@@ -405,10 +412,17 @@ HRESULT CRenderer::Render_Blend()
 	_float4x4* _LightView = nullptr;
 	_float4x4* _LightProj = nullptr;
 
+	_float4x4* _LightView2 = nullptr;
+	_float4x4* _LightProj2 = nullptr;
+
 	_bool		_bView = false;
 	
 	_LightView = _pInstance->Get_LightMatrix(_pLv->Get_CurLv(), CLight_Manager::LIGHT_FIRST, CLight_Manager::LIGHT_VIEW);
 	_LightProj = _pInstance->Get_LightMatrix(_pLv->Get_CurLv(), CLight_Manager::LIGHT_FIRST, CLight_Manager::LIGHT_PROJ);
+
+	_LightView2 = _pInstance->Get_LightMatrix(_pLv->Get_CurLv(), CLight_Manager::LIGHT_SECOND, CLight_Manager::LIGHT_VIEW);
+	_LightProj2 = _pInstance->Get_LightMatrix(_pLv->Get_CurLv(), CLight_Manager::LIGHT_SECOND, CLight_Manager::LIGHT_PROJ);
+
 	if (_LightView != nullptr)
 	{
 		if (FAILED(m_pShader->Set_RawValue("g_LightView", _LightView, sizeof(_float4x4))))
@@ -453,11 +467,26 @@ HRESULT CRenderer::Render_Blend()
 
 	if (FAILED(m_pTarget_Manager->Bind_SRV(TEXT("Target_ShadowDepth"), m_pShader, "g_ShadowDepthTexture")))
 		return E_FAIL;
+	if (FAILED(m_pTarget_Manager->Bind_SRV(TEXT("Target_ShadowDepth2"), m_pShader, "g_ShadowDepthTexture2")))
+		return E_FAIL;
 
 	if (FAILED(m_pTarget_Manager->Bind_SRV(TEXT("Target_Depth"), m_pShader, "g_DepthTexture")))
 		return E_FAIL;
 
-	m_pShader->Begin(3);
+
+	if (_LightView2 == nullptr)
+	{
+		m_pShader->Begin(3);
+	}
+	else
+	{
+		if (FAILED(m_pShader->Set_RawValue("g_LightView2", _LightView2, sizeof(_float4x4))))
+			return E_FAIL;
+		if (FAILED(m_pShader->Set_RawValue("g_LightProj2", _LightProj2, sizeof(_float4x4))))
+			return E_FAIL;
+		m_pShader->Begin(8);
+	}
+	
 
 	m_pVIBuffer->Render();
 
