@@ -22,15 +22,18 @@ public:
 
 	void	Move_Effect(_vector _vPos);
 
+	void	Set_Stop(_bool _bStop) { m_bStop = _bStop; if (m_bStop) m_iPass = 9; }
+
 private:
 	CNonAnimModel*	m_pModelCom = nullptr;
 
-	_float			m_fMaxTime = 0.1f;
+	_float			m_fMaxTime = 3.5f;
 	_float			m_fCurTime = 0.f;
 	_float			m_fAccSpeed = 1.f;
 	_float			m_fEffectTime = 0.f;
 
 	_float3			m_fAngle;
+	_bool			m_bStop = false;
 
 	_uint			m_iPass = 8;
 

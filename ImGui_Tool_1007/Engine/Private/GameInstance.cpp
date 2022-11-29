@@ -74,7 +74,7 @@ void CGameInstance::Tick_Engine( _float fTimeDelta)
 		return;
 
 
-	m_pCollision_Mgr->Clear_CollisoinList();
+	
 
 	m_pInput_Device->Update();
 	m_pLevel_Manager->Tick(fTimeDelta);

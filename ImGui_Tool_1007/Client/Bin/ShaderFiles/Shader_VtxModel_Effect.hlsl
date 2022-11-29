@@ -135,24 +135,18 @@ PS_OUT PS_DISAPEARTWIST(PS_IN In)
 
 	vector Mask = g_DiffuseTexture.Sample(DefaultSampler, In.vTexUV);
 
-	{
-	
-		PS_OUT		Out = (PS_OUT)0;
-
-		vector Mask = g_DiffuseTexture.Sample(DefaultSampler, In.vTexUV);
-
-		Out.vDiffuse = Mask * 5.f;
-		Out.vDiffuse.a = Mask.g;
+	Out.vDiffuse = Mask * 5.f;
+	Out.vDiffuse.a = Mask.g;
 		
-		Out.vDiffuse.a -= g_fTime;
+	Out.vDiffuse.a -= g_fTime;
 
-		if (0.2 >= Out.vDiffuse.a)
-			discard;
+	if (0.2 >= Out.vDiffuse.a)
+		discard;
 
-		Out.vDepth = vector(In.vProjPos.z / In.vProjPos.w, In.vProjPos.w, 0.0f, 0.0f);
-		//Out.vDiffuse = pow(Out.vDiffuse, 2.2f);
-		return Out;
-	}
+	Out.vDepth = vector(In.vProjPos.z / In.vProjPos.w, In.vProjPos.w, 0.0f, 0.0f);
+	//Out.vDiffuse = pow(Out.vDiffuse, 2.2f);
+	return Out;
+
 }
 
 PS_OUT PS_MAIN_WIND(PS_IN In)
@@ -438,6 +432,6 @@ technique11 DefaultTechnique
 		SetBlendState(BS_AlphaBlend, float4(0.f, 0.f, 0.f, 0.f), 0xffffffff);
 		VertexShader = compile vs_5_0 VS_MAIN();
 		GeometryShader = NULL;
-		PixelShader = compile ps_5_0 PS_TWIST();
+		PixelShader = compile ps_5_0 PS_DISAPEARTWIST();
 	}
 }

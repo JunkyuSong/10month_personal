@@ -639,6 +639,11 @@ _bool CExtra01::Collision(_float fTimeDelta)
 
 	if ((_pTarget = m_pColliderCom[COLLIDERTYPE_BODY]->Get_Target()) && (CPlayer::ParryL != *static_cast<CPlayer*>(_pTarget)->Get_AnimState()))
 	{
+		
+		if (TYPE_BULLET == _pTarget->Get_ObjType())
+		{
+			return false;
+		}
 		CPlayer* _pPlayer = static_cast<CPlayer*>(_pTarget);
 
 		if (CPlayer::Raven_ClawNear == *static_cast<CPlayer*>(_pTarget)->Get_AnimState())

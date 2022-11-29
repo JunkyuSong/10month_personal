@@ -663,6 +663,10 @@ _bool CExtra02::Collision(_float fTimeDelta)
 
 	if ((_pTarget = m_pColliderCom[COLLIDERTYPE_BODY]->Get_Target()) && (CPlayer::ParryL != *static_cast<CPlayer*>(_pTarget)->Get_AnimState()))
 	{
+		if (TYPE_BULLET == _pTarget->Get_ObjType())
+		{
+			return false;
+		}
 		CPlayer* _pPlayer = static_cast<CPlayer*>(_pTarget);
 
 		CTransform* _Trans = static_cast<CTransform*>(_instance->Get_Player()->Get_ComponentPtr(TEXT("Com_Transform")));

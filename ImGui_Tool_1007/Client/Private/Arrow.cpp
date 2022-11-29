@@ -6,6 +6,8 @@
 #include "Effect_Mgr.h"
 #include "ArrowTwist.h"
 
+
+
 CArrow::CArrow(ID3D11Device * pDevice, ID3D11DeviceContext * pContext)
 	: CEffect(pDevice, pContext)
 {
@@ -23,11 +25,11 @@ HRESULT CArrow::Initialize_Prototype()
 
 HRESULT CArrow::Initialize(void * pArg)
 {
+	m_eTypeObj = CGameObject::TYPE_BULLET;
 	if (!m_bDead)
 	{
 		if (FAILED(Ready_Components()))
 			return E_FAIL;
-
 	}
 
 	if (!pArg)
@@ -37,45 +39,24 @@ HRESULT CArrow::Initialize(void * pArg)
 
 	m_tInfo = *(ARROW*)pArg;
 
-	m_tInfo.StartMatrix;
-
 	_matrix _Start;
+	m_tInfo.StartMatrix._42 += 1.1f;
 
+	m_pTransformCom->Set_WorldFloat4x4(m_tInfo.StartMatrix);
 	_Start = XMLoadFloat4x4(&m_tInfo.StartMatrix);
-	_Start.r[2] = XMVector3Normalize( _Start.r[1] * -1.f);
-
-	_Start.r[0] = XMVector3Cross(XMVectorSet(0.f, 1.f, 0.f, 0.f), _Start.r[2]);
-
-	_Start.r[1] = XMVectorSet(0.f, 1.f, 0.f, 0.f);
-
-	XMStoreFloat4x4(&m_tInfo.StartMatrix, _Start);
-	m_pTransCom->Set_WorldFloat4x4(m_tInfo.StartMatrix);
-
 	XMStoreFloat4(&m_vStartPos, _Start.r[3]);
-
 	m_vPos.clear();
 
 	_float3 _fvPos;
-	//화살
-	XMStoreFloat3(&_fvPos, m_pTransCom->Get_State(CTransform::STATE_POSITION) - m_pTransCom->Get_State(CTransform::STATE_LOOK));
+	XMStoreFloat3(&_fvPos, m_pTransformCom->Get_State(CTransform::STATE_POSITION) - m_pTransformCom->Get_State(CTransform::STATE_LOOK));
 	m_vPos.push_back(_fvPos);
-	XMStoreFloat3(&_fvPos, m_pTransCom->Get_State(CTransform::STATE_POSITION) + m_pTransCom->Get_State(CTransform::STATE_LOOK));
+	XMStoreFloat3(&_fvPos, m_pTransformCom->Get_State(CTransform::STATE_POSITION) + m_pTransformCom->Get_State(CTransform::STATE_LOOK));
 	m_vPos.push_back(_fvPos);
-	//꼬리
-	//XMStoreFloat3(&_fvPos, m_pTransCom->Get_State(CTransform::STATE_POSITION) - m_pTransCom->Get_State(CTransform::STATE_LOOK));
-	//m_vPos.push_back(_fvPos);
-	//m_vPos.push_back(_fvPos);
 
-	m_pArrowTwist.push_back(static_cast<CArrowTwist*>(CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_TWIST, &m_pTransCom->Get_WorldMatrix())));
-	m_pTransCom->Turn_Angle(m_pTransCom->Get_State(CTransform::STATE_LOOK), XMConvertToRadians(90.f));
-	m_pArrowTwist.push_back(static_cast<CArrowTwist*>(CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_TWIST, &m_pTransCom->Get_WorldMatrix())));
-	m_pTransCom->Turn_Angle(m_pTransCom->Get_State(CTransform::STATE_LOOK), XMConvertToRadians(90.f));
-	m_pArrowTwist.push_back(static_cast<CArrowTwist*>(CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_TWIST, &m_pTransCom->Get_WorldMatrix())));
-	m_pTransCom->Turn_Angle(m_pTransCom->Get_State(CTransform::STATE_LOOK), XMConvertToRadians(90.f));
-	m_pArrowTwist.push_back(static_cast<CArrowTwist*>(CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_TWIST, &m_pTransCom->Get_WorldMatrix())));
-	
-	/*if (!m_pArrowTwist)
-		return E_FAIL;*/
+	m_pArrowTwist.push_back(static_cast<CArrowTwist*>(CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_TWIST, &m_pTransformCom->Get_WorldMatrix())));
+	m_pTransformCom->Turn_Angle(m_pTransformCom->Get_State(CTransform::STATE_LOOK), XMConvertToRadians(90.f));
+	m_pArrowTwist.push_back(static_cast<CArrowTwist*>(CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_TWIST, &m_pTransformCom->Get_WorldMatrix())));
+
 	for (auto& iter : m_pArrowTwist)
 	{
 		Safe_AddRef(iter);
@@ -84,9 +65,28 @@ HRESULT CArrow::Initialize(void * pArg)
 	m_fCurTime = 0.f;
 	m_fTick = 0.f;
 
+	m_tOption.eType = CEffect_Particle::PARTICLETYPE::TYPE_STRIGHT;
+	m_tOption.fAccSpeed = 0.99f;
+	m_tOption.fSpeed = { 0.5f, 1.3f };
+	m_tOption.fGravity = 0.f;
+	m_tOption.fLifeTime = 0.5f;
+	m_tOption.fRange = _float3(5.f, 5.f, 1.f);
+	m_tOption.iNumParticles = 1;
+	m_tOption.Size = _float2(0.1f, 0.1f);
+	m_tOption.Spread = CEffect_Particle::SPREAD::SPREAD_EDGE;
+	m_tOption.szMaskTag = TEXT("Prototype_Component_Texture_Mask_Blood");
+	m_tOption.szTextureTag = TEXT("Prototype_Component_Texture_Diffuse_Blood");
+	m_tOption.vColor = CLIENT_RGB(179.f, 245.f, 150.f);
+	m_tOption.fSpead_Angle = _float3(0.f, 10.f, 10.f);
+	m_tOption.vStart_Dir = _float3(0.f, 0.f, -1.f);
+	m_tOption.eDiffuseType = CEffect_Particle::DIFFUSE_COLOR;
+	m_tOption.eDirType = CEffect_Particle::DIR_TYPE::DIR_ANGLE;
+	m_tOption.eStartType = CEffect_Particle::START_CENTER;
+	m_tOption.fMaxDistance = { 0.4f, 1.2f };
+	m_tOption.eDissapear = CEffect_Particle::DISSAPEAR_ALPHA;
 
-	//포스 두개 만들고...
-
+	m_tOption.bPlayerDir = true;
+	XMStoreFloat4x4(&m_tOption.matPlayerAxix, m_pTransformCom->Get_WorldMatrix());
 
 	return S_OK;
 }
@@ -105,7 +105,11 @@ const _bool & CArrow::Update(_float _fTimeDelta)
 	if (m_bDead)
 	{
 		m_vPos.clear();
-		
+		for (auto& iter : m_pArrowTwist)
+		{
+			Safe_Release(iter);
+		}
+		m_pArrowTwist.clear();
 		return false;
 	}
 		
@@ -114,32 +118,32 @@ const _bool & CArrow::Update(_float _fTimeDelta)
 
 	m_fCurTime += _fTimeDelta/* / _pGameInstance->Get_TimeSpeed(TEXT("Timer_Main"))*/;
 	m_fTick += _fTimeDelta / _pGameInstance->Get_TimeSpeed(TEXT("Timer_Main"));
-	_vector _vPos = m_pTransCom->Get_State(CTransform::STATE_POSITION);
+	_vector _vPos = m_pTransformCom->Get_State(CTransform::STATE_POSITION);
 	_float	_fDis = fabs(XMVector3Length(_vPos - XMLoadFloat4(&m_vStartPos)).m128_f32[0]);
 	if (_fDis < 130.f)
 	{		
-		m_pTransCom->Go_Straight(m_fSpeed * _fTimeDelta /*/ _pGameInstance->Get_TimeSpeed(TEXT("Timer_Main"))*/);
+		m_pTransformCom->Go_Straight(m_fSpeed * _fTimeDelta /*/ _pGameInstance->Get_TimeSpeed(TEXT("Timer_Main"))*/);
 		XMStoreFloat3(&m_vPos[0], XMLoadFloat3(&m_vPos[0]) + m_fSpeed *
-			( m_pTransCom->Get_State(CTransform::STATE_LOOK)) * _fTimeDelta /*/ _pGameInstance->Get_TimeSpeed(TEXT("Timer_Main"))*/ );
-		
-		_vector _vCurPos = m_pTransCom->Get_State(CTransform::STATE_POSITION);
-		//if (_fDis > 7.f)
-		//{
-		//	m_pArrowTwist.push_back(static_cast<CArrowTwist*>(CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_TWIST, &m_pTransCom->Get_WorldMatrix())));
-		//	Safe_AddRef(m_pArrowTwist.back());
-		//	//m_pTransCom->Turn_Angle(m_pTransCom->Get_State(CTransform::STATE_LOOK), XMConvertToRadians(90.f));
-		//}
+			( m_pTransformCom->Get_State(CTransform::STATE_LOOK)) * _fTimeDelta /*/ _pGameInstance->Get_TimeSpeed(TEXT("Timer_Main"))*/ );
 
 		for (auto& iter : m_pArrowTwist)
 		{
-			iter->Move_Effect(m_pTransCom->Get_State(CTransform::STATE_POSITION));
+			iter->Move_Effect(m_pTransformCom->Get_State(CTransform::STATE_POSITION));
 		}
 	}
 	
 	if (m_fCurTime > m_fMaxTime)
 	{
-		XMStoreFloat3(&m_vPos[1], XMLoadFloat3(&m_vPos[1]) +  10.f * _fTimeDelta * m_pTransCom->Get_State(CTransform::STATE_LOOK));
+		XMStoreFloat3(&m_vPos[1], XMLoadFloat3(&m_vPos[1]) +  7.f * _fTimeDelta * m_pTransformCom->Get_State(CTransform::STATE_LOOK));
 		//m_fCurTime = 0.f;
+
+		m_tOption.Center = m_vPos[1];
+		m_tOption.Size = _float2(_pGameInstance->Rand_Float(0.03f, 0.13f), _pGameInstance->Rand_Float(0.03f, 0.13f));
+		if (nullptr == CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_PARTICLE, &m_tOption))
+		{
+			MSG_BOX(TEXT("fail effect"));
+			return false;
+		}
 	}
 
 	if (m_fTick > 4.f)
@@ -152,9 +156,10 @@ const _bool & CArrow::Update(_float _fTimeDelta)
 		m_pArrowTwist.clear();
 	}
 
-	Compute_CamZ(m_pTransCom->Get_State(CTransform::STATE_POSITION));
+	Compute_CamZ(m_pTransformCom->Get_State(CTransform::STATE_POSITION));
 	m_pRendererCom->Add_RenderGroup(CRenderer::RENDER_ALPHABLEND, this) ;
-
+	m_pColliderCom->Update(m_pTransformCom->Get_WorldMatrix());
+	CCollisionMgr::Get_Instance()->Add_CollisoinList(CCollisionMgr::GAMEOBJ_TYPE::TYPE_PLAYER_BULLET, m_pColliderCom, this);
 	return true;
 }
 
@@ -164,21 +169,31 @@ HRESULT CArrow::Render()
 		nullptr == m_pShaderCom)
 		return E_FAIL;
 
-	/*if (m_vPos.size() < 2)
-		return S_OK;*/
+	if (m_pColliderCom->Get_Target())
+	{
+		//맞은 이펙트 추가 하고 얘는 사라지고
+		for (auto& iter : m_pArrowTwist)
+		{
+			iter->Set_Stop(true);
+		}
+
+
+		m_bDead = true;
+
+	}
 
 	AUTOINSTANCE(CGameInstance, pGameInstance);
 
 	{
 	//up은 카메라를 보는 방향 넣고, 그리고 룩은 고정이니까 그걸로 넣어서 right구하고, 그걸로 제대로 된 up 구한다.
-		_vector _vUp = XMLoadFloat4(&pGameInstance->Get_CamPosition()) - m_pTransCom->Get_State(CTransform::STATE_POSITION);
+		_vector _vUp = XMLoadFloat4(&pGameInstance->Get_CamPosition()) - m_pTransformCom->Get_State(CTransform::STATE_POSITION);
 
-		_vector _vRight = XMVector3Cross(_vUp, m_pTransCom->Get_State(CTransform::STATE_LOOK));
-		_vUp = XMVector3Cross(m_pTransCom->Get_State(CTransform::STATE_LOOK), _vRight);
+		_vector _vRight = XMVector3Cross(_vUp, m_pTransformCom->Get_State(CTransform::STATE_LOOK));
+		_vUp = XMVector3Cross(m_pTransformCom->Get_State(CTransform::STATE_LOOK), _vRight);
 
-		m_pTransCom->Set_State(CTransform::STATE_RIGHT, _vRight);
-		m_pTransCom->Set_State(CTransform::STATE_UP, _vUp);
-		m_pTransCom->Set_Scale(XMVectorSet(1.f, 1.f, 1.f, 0.f));
+		m_pTransformCom->Set_State(CTransform::STATE_RIGHT, _vRight);
+		m_pTransformCom->Set_State(CTransform::STATE_UP, _vUp);
+		m_pTransformCom->Set_Scale(XMVectorSet(1.f, 1.f, 1.f, 0.f));
 	}
 
 	_float		_fWidth = 0.3f;
@@ -197,8 +212,8 @@ HRESULT CArrow::Render()
 	{
 		_float3 _vRight, _vUp, _vLook;
 
-		XMStoreFloat3(&_vRight, m_pTransCom->Get_State(CTransform::STATE_RIGHT));
-		XMStoreFloat3(&_vUp, m_pTransCom->Get_State(CTransform::STATE_UP));
+		XMStoreFloat3(&_vRight, m_pTransformCom->Get_State(CTransform::STATE_RIGHT));
+		XMStoreFloat3(&_vUp, m_pTransformCom->Get_State(CTransform::STATE_UP));
 
 		m_pShaderCom->Set_RawValue("g_Right", &(_vRight), sizeof(_float3));
 		m_pShaderCom->Set_RawValue("g_Up", &(_vUp), sizeof(_float3));
@@ -218,42 +233,8 @@ HRESULT CArrow::Render()
 		if (FAILED(m_pVIBufferCom->Render()))
 			return E_FAIL;
 
-		/*vPos[0] = m_vPos[3];
-		vPos[1] = m_vPos[2];
-		_fWidth = 3.f;
-		m_pShaderCom->Set_RawValue("g_vPos_1", &(vPos[0]), sizeof(_float3));
-		m_pShaderCom->Set_RawValue("g_vPos_2", &(vPos[1]), sizeof(_float3));
-		m_pTextureCom->Set_SRV(m_pShaderCom, "g_DiffuseTexture");
-		if (FAILED(m_pShaderCom->Begin(6)))
-			return E_FAIL;
 
-		if (FAILED(m_pVIBufferCom->Render()))
-			return E_FAIL;*/
 	}
-
-	
-	
-
-
-	
-	/*
-	if (FAILED(m_pShaderCom->Set_RawValue("g_WorldMatrix", &XMMatrixTranspose(XMLoadFloat4x4(&m_tInfo.StartMatrix)), sizeof(_float4x4))))
-		return E_FAIL;
-
-	if (FAILED(m_pShaderCom->Set_RawValue("g_vCamPosition", &pGameInstance->Get_CamPosition(), sizeof(_float4))))
-		return E_FAIL;
-
-	_float2 vSize;
-	vSize.x = 5.f + m_fTick * 10.f;
-	vSize.y = 0.3f + m_fTick * 5.f;
-	m_pShaderCom->Set_RawValue("g_Size", &vSize, sizeof(_float2));
-
-	m_pFlareTextureCom->Set_SRV(m_pShaderCom, "g_DiffuseTexture");
-	if (FAILED(m_pShaderCom->Begin(7)))
-		return E_FAIL;
-
-	if (FAILED(m_pVIBufferCom->Render()))
-		return E_FAIL;*/
 
 	return S_OK;
 }
@@ -291,7 +272,7 @@ void CArrow::Free()
 	Safe_Release(m_pRendererCom);
 	Safe_Release(m_pShaderCom);
 	Safe_Release(m_pVIBufferCom);
-	Safe_Release(m_pTransCom);
+	Safe_Release(m_pTransformCom);
 	Safe_Release(m_pTextureCom);
 	Safe_Release(m_pFlareTextureCom);
 	Safe_Release(m_pArrowTextureCom);
@@ -300,34 +281,7 @@ void CArrow::Free()
 		Safe_Release(iter);
 	}
 	m_pArrowTwist.clear();
-}
-
-
-
-void CArrow::Add_Point(_float3 _vPos)
-{
-	_float3 _vRight, _vUp, _vLook;
-	if (m_vPos.size() == 0)
-	{
-		m_pTransCom->Set_State(CTransform::STATE_POSITION, XMLoadFloat3(&_vPos));
-		//XMStoreFloat3(&_vRight, XMVectorSet(1.f,0.f,0.f,0.f));
-		//XMStoreFloat3(&_vUp, XMVectorSet(0.f, 1.f, 0.f, 0.f));
-	}
-	else
-	{
-		m_pTransCom->Set_State(CTransform::STATE_POSITION, XMLoadFloat3(&_vPos));
-		//m_pTransCom->LookAt_ForLandObject(XMLoadFloat3(&(m_vPos.back())));
-		//XMStoreFloat3(&_vRight, m_pTransCom->Get_State(CTransform::STATE_RIGHT));
-		//XMStoreFloat3(&_vUp, m_pTransCom->Get_State(CTransform::STATE_UP));
-		//m_pTransCom->Set_Scale(XMVectorSet( 1.f, 1.f, 1.f, 0.f));
-		////XMStoreFloat3(&_vRight, XMVectorSet(1.f, 0.f, 0.f, 0.f));
-		////XMStoreFloat3(&_vUp, XMVectorSet(0.f, 1.f, 0.f, 0.f));
-		////XMStoreFloat3(&_vLook, XMVectorSet(0.f, 0.f, 1.f, 0.f));
-	}
-	m_vPos.push_back(_vPos);
-	//m_vRight.push_back(_vRight);
-	//m_vUp.push_back(_vUp);
-	//m_vLook.push_back(_vLook);
+	Safe_Release(m_pColliderCom);
 }
 
 HRESULT CArrow::Ready_Components()
@@ -338,10 +292,10 @@ HRESULT CArrow::Ready_Components()
 	//_Desc.fSpeedPerSec = 1.5f;
 	_Desc.fSpeedPerSec = 1.f;
 
-	if (FAILED(__super::Add_Component(LEVEL_STATIC, TEXT("Prototype_Component_Transform"), TEXT("Com_Transform"), (CComponent**)&m_pTransCom, &_Desc)))
+	if (FAILED(__super::Add_Component(LEVEL_STATIC, TEXT("Prototype_Component_Transform"), TEXT("Com_Transform"), (CComponent**)&m_pTransformCom, &_Desc)))
 		return E_FAIL;
 
-	m_pTransCom->Set_Scale(XMVectorSet(1.f, 1.f, 1.f, 0.f));
+	m_pTransformCom->Set_Scale(XMVectorSet(1.f, 1.f, 1.f, 0.f));
 	/* For.Com_Renderer */
 	if (FAILED(__super::Add_Component(LEVEL_STATIC, TEXT("Prototype_Component_Renderer"), TEXT("Com_Renderer"), (CComponent**)&m_pRendererCom)))
 		return E_FAIL;
@@ -364,6 +318,16 @@ HRESULT CArrow::Ready_Components()
 
 	/* For.Com_ArrowTexture */
 	if (FAILED(__super::Add_Component(LEVEL_STATIC, TEXT("Prototype_Component_Texture_Mask_Arrow"), TEXT("Com_ArrowTexture"), (CComponent**)&m_pArrowTextureCom)))
+		return E_FAIL;
+
+	/* For.Com_OBB */
+	CCollider::COLLIDERDESC		ColliderDesc;
+	ZeroMemory(&ColliderDesc, sizeof(CCollider::COLLIDERDESC));
+
+	ColliderDesc.vSize = _float3(0.3f, 0.3f, 0.3f);
+	ColliderDesc.vCenter = _float3(0.f, 0.f, 0.f);
+	ColliderDesc.vRotation = _float3(0.f, 0.f, 0.f);
+	if (FAILED(__super::Add_Component(LEVEL_GAMEPLAY, TEXT("Prototype_Component_Collider_OBB"), TEXT("Com_Claw"), (CComponent**)&m_pColliderCom, &ColliderDesc)))
 		return E_FAIL;
 
 	return S_OK;

@@ -1752,7 +1752,14 @@ void CPlayer::CheckLimit()
 		{
 			if (!m_bEffect)
 			{
-				static_cast<CBow*>(m_pSkillParts[SKILL_BOW][0])->Shoot();
+				if (m_pTarget)
+					m_pTransformCom->LookAt_ForLandObject(static_cast<CTransform*>(m_pTarget->Get_ComponentPtr(TEXT("Com_Transform")))->Get_State(CTransform::STATE_POSITION));
+				//static_cast<CBow*>(m_pSkillParts[SKILL_BOW][0])->Shoot();
+
+				CArrow::ARROW _tArrow;
+				XMStoreFloat4x4(&_tArrow.StartMatrix, /*m_pTransformCom->Get_WorldMatrix() * */m_pTransformCom->Get_WorldMatrix());
+				CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_ARROW, &_tArrow);
+
 				m_bEffect = true;
 			}
 		}

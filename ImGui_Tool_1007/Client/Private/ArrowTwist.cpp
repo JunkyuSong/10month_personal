@@ -38,8 +38,10 @@ HRESULT CArrowTwist::Initialize(void * pArg)
 	}
 	//행렬 받아서 그대로 룩 만들고 거기에서 돌려가면서 시간마다 화살 따라 생성되면서!
 	m_bDead = false;
+	m_bStop = false;
+	m_iPass = 8;
 	_matrix _TargetWorld = *(_matrix*)pArg;
-
+	
 	m_pTransformCom->Set_WorldMatrix(_TargetWorld);
 	m_pTransformCom->Set_Scale(XMVectorSet(0.01f, 0.005f, 0.005f, 0.f));
 
@@ -58,24 +60,28 @@ const _bool& CArrowTwist::Update(_float fTimeDelta)
 		m_iPass = 8;
 		m_fEffectTime = 0.f;
 		m_fAccSpeed = 1.f;
+		m_bStop = false;
 		return false;
 	}
 
 	m_fCurTime += fTimeDelta;
 	m_fAccSpeed *= 1.01f;
-	m_pTransformCom->Turn(m_pTransformCom->Get_State(CTransform::STATE_RIGHT), fTimeDelta * (m_fCurTime + 10.f) /** m_fAccSpeed*/);
-	m_iPass = 9;
-	m_fEffectTime = (m_fCurTime - m_fMaxTime) * 1.05f;
+	m_pTransformCom->Turn(m_pTransformCom->Get_State(CTransform::STATE_RIGHT), fTimeDelta * (m_fCurTime + 5.f) /** m_fAccSpeed*/);
 	_float3 _vScale = m_pTransformCom->Get_Scale();
 	if (m_fCurTime > m_fMaxTime)
 	{
-		
-		_vScale.y *= 1.02f; // y,z 사이즈만!
-		_vScale.z *= 1.02f;
-		
-		
+		m_bDead = true;
 	}
-	_vScale.x += 0.005f;
+	if (!m_bStop)
+	{
+		_vScale.x += 0.012f;		
+	}
+	else
+	{
+		m_fEffectTime += fTimeDelta;
+		m_iPass = 9;
+	}
+		
 	m_pTransformCom->Set_Scale(XMLoadFloat3(&_vScale));
 	Compute_CamZ(m_pTransformCom->Get_State(CTransform::STATE_POSITION));
 	m_pRendererCom->Add_RenderGroup(CRenderer::RENDER_ALPHABLEND, this);
@@ -96,7 +102,8 @@ HRESULT CArrowTwist::Render()
 
 	if (m_iPass == 9)
 	{
-		if (FAILED(m_pShaderCom->Set_RawValue("g_fTime", &(m_fEffectTime), sizeof(_float))))
+		_float fAlpha = m_fEffectTime;
+		if (FAILED(m_pShaderCom->Set_RawValue("g_fTime", &(fAlpha), sizeof(_float))))
 			return E_FAIL;
 		if (m_fEffectTime > 1.0f)
 			m_bDead = true;

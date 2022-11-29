@@ -71,13 +71,16 @@ HRESULT CLevel_Stage_Last::Ready_Lights()
 	DIRLIGHTDESC			LightDesc;
 	ZeroMemory(&LightDesc, sizeof(DIRLIGHTDESC));
 
-	LightDesc.vDirection = _float4(1.f, -1.f, 1.f, 0.f);
+	XMStoreFloat4(&LightDesc.vDirection,
+		XMVectorSet(45.491f, 0.165f, 45.676f, 1.f) - XMVectorSet(73.739f, 50.28f, 44.589f, 1.f));
+
+	LightDesc.vPosition = _float4(73.739f, 50.28f, 44.589f, 1.f);
 	LightDesc.vDiffuse = _float4(1.f, 1.f, 1.f, 1.f);
 	LightDesc.vAmbient = _float4(0.3f, 0.3f, 0.3f, 1.1f);
 	LightDesc.vSpecular = _float4(0.2f, 0.2f, 0.2f, 0.2f);
 	LightDesc.LightViewMatrix = new _float4x4;
 	LightDesc.LightProjMatrix = new _float4x4;
-	XMStoreFloat4x4(LightDesc.LightProjMatrix, XMMatrixPerspectiveFovLH(XMConvertToRadians(120.f), 1280.f / 720.f, 0.2f, 300.f));
+	XMStoreFloat4x4(LightDesc.LightProjMatrix, XMMatrixTranspose(XMMatrixPerspectiveFovLH(XMConvertToRadians(60.f), 1280.f / 720.f, 0.2f, 300.f)));
 
 	if (FAILED(pGameInstance->Add_Light(m_pDevice, m_pContext, LEVEL_STAGE_LAST, LightDesc)))
 		return E_FAIL;

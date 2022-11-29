@@ -83,8 +83,9 @@ void CMainApp::Tick(const _float& fTimeDelta)
 	CImGui::Get_Instance()->Begin("FPS : ");
 	CImGui::Get_Instance()->Intcheck(&m_iFps, "FPS");
 	CImGui::Get_Instance()->End();
-	m_pGameInstance->Tick_Engine(fTimeDelta);
 	CEffect_Mgr::Get_Instance()->Tick(fTimeDelta);
+	m_pGameInstance->Tick_Engine(fTimeDelta);
+	
 	CCameraMgr::Get_Instance()->Tick(fTimeDelta);
 	CPipeLine::Get_Instance()->Update();
 	

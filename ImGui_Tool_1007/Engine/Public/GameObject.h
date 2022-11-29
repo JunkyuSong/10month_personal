@@ -7,7 +7,7 @@ BEGIN(Engine)
 class ENGINE_DLL CGameObject abstract : public CBase
 {
 public:
-	enum OBJTYPE { TYPE_PLAYER, TYPE_MONSTER, TYPE_CAMERA, TYPE_STATIC, TYPE_END };
+	enum OBJTYPE { TYPE_PLAYER, TYPE_MONSTER, TYPE_BULLET, TYPE_CAMERA, TYPE_STATIC, TYPE_END };
 
 protected:
 	CGameObject(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);

@@ -2,11 +2,14 @@
 #include "Effect.h"
 #include "Client_Defines.h"
 
+#include "Effect_Particle.h"
+
 BEGIN(Engine)
 class CShader;
 class CTexture;
 class CTransform;
 class CRenderer;
+class CCollider;
 class CVIBuffer_Point;
 END
 
@@ -35,9 +38,6 @@ public:
 
 	virtual const _bool & Update(_float _fTimeDelta) override;
 
-	void	Add_Point(_float3 _vPos);
-
-
 private:
 	ARROW					m_tInfo;
 
@@ -57,14 +57,18 @@ private:
 	_float					m_fSpeed = 30.f;
 
 	CShader*				m_pShaderCom = nullptr;
-	CTransform*				m_pTransCom = nullptr;
 	CRenderer*				m_pRendererCom = nullptr;
 	CVIBuffer_Point*		m_pVIBufferCom = nullptr;
 	CTexture*				m_pTextureCom = nullptr;
 	CTexture*				m_pArrowTextureCom = nullptr;
 	CTexture*				m_pFlareTextureCom = nullptr;
+	CCollider*				m_pColliderCom = nullptr;
 
 	vector<class CArrowTwist*>		m_pArrowTwist;
+
+	CEffect_Particle::OPTION		m_tOption;
+
+	//class CStatus
 
 private:
 	HRESULT Ready_Components();

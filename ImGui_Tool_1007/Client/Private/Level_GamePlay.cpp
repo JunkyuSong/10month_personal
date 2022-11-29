@@ -76,7 +76,7 @@ HRESULT CLevel_GamePlay::Ready_Lights()
 	LightDesc.vSpecular = _float4(0.05f, 0.05f, 0.05f, 1.f);
 	LightDesc.LightViewMatrix = new _float4x4;
 	LightDesc.LightProjMatrix = new _float4x4;
-	XMStoreFloat4x4(LightDesc.LightProjMatrix, XMMatrixTranspose(XMMatrixPerspectiveFovLH(XMConvertToRadians(120.f), 1280.f / 720.f, 0.2f, 300.f)));
+	XMStoreFloat4x4(LightDesc.LightProjMatrix, XMMatrixTranspose(XMMatrixPerspectiveFovLH(XMConvertToRadians(60.f), 1280.f / 720.f, 0.2f, 300.f)));
 	if (FAILED(pGameInstance->Add_Light(m_pDevice, m_pContext, LEVEL_GAMEPLAY, LightDesc)))
 		return E_FAIL;
 	pGameInstance->Light_On(LEVEL_GAMEPLAY, CLight_Manager::DIRLIGHT,0);
