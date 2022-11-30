@@ -251,6 +251,7 @@
     <ClInclude Include="..\Public\Status.h" />
     <ClInclude Include="..\public\Straight_Particle.h" />
     <ClInclude Include="..\Public\StreetLight.h" />
+    <ClInclude Include="..\Public\ArrowTarget.h" />
     <ClInclude Include="..\Public\Terrain.h" />
     <ClInclude Include="..\Public\TerrainMgr.h" />
     <ClInclude Include="..\public\Texture_Tool.h" />
@@ -352,6 +353,7 @@
     <ClCompile Include="..\Private\Status.cpp" />
     <ClCompile Include="..\private\Straight_Particle.cpp" />
     <ClCompile Include="..\Private\StreetLigth.cpp" />
+    <ClCompile Include="..\Private\ArrowTarget.cpp" />
     <ClCompile Include="..\Private\Terrain.cpp" />
     <ClCompile Include="..\Private\TerrainMgr.cpp" />
     <ClCompile Include="..\private\Texture_Tool.cpp" />

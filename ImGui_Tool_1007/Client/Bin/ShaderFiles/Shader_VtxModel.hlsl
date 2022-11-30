@@ -89,6 +89,14 @@ struct PS_OUT
 	float4		vDepth : SV_TARGET2;
 };
 
+struct PS_OUT_BLEND
+{
+	float4		vDiffuse : SV_TARGET0;
+	float4		vDepth : SV_TARGET1;
+	float4		vDistosion : SV_TARGET2;
+	
+};
+
 struct PS_SHADOW_OUT
 {
 	float4		vShadowDepth : SV_TARGET0;
@@ -263,17 +271,18 @@ PS_OUT PS_Stage(PS_IN In)
 	return Out;
 }
 
-PS_OUT PS_MAIN_3(PS_IN In)
+PS_OUT_BLEND PS_MAIN_3(PS_IN In)
 {
-	PS_OUT		Out = (PS_OUT)0;
+	PS_OUT_BLEND		Out = (PS_OUT_BLEND)0;
 
 	Out.vDiffuse = (vector)1.f;
 
 	vector			vMtrlDiffuse = g_DiffuseTexture.Sample(DefaultSampler, In.vTexUV);
 	Out.vDiffuse = vMtrlDiffuse;
 	Out.vDiffuse.a *= g_fAlpha;
-	//Out.vDiffuse = pow(Out.vDiffuse, 2.2f);
-	if (0 == Out.vDiffuse.a)
+
+	Out.vDepth = vector(In.vProjPos.z / In.vProjPos.w, In.vProjPos.w, 0.0f, 0.0f);
+	if (0 >= Out.vDiffuse.a)
 		discard;
 	
 	return Out;

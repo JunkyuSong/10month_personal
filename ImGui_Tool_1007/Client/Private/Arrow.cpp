@@ -176,7 +176,8 @@ HRESULT CArrow::Render()
 		{
 			iter->Set_Stop(true);
 		}
-
+		_matrix _World = m_pTransformCom->Get_WorldMatrix();
+		CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_TARGET, &_World);
 
 		m_bDead = true;
 
@@ -282,6 +283,7 @@ void CArrow::Free()
 	}
 	m_pArrowTwist.clear();
 	Safe_Release(m_pColliderCom);
+	Safe_Release(m_pStatusCom);	
 }
 
 HRESULT CArrow::Ready_Components()
@@ -308,12 +310,12 @@ HRESULT CArrow::Ready_Components()
 	if (FAILED(__super::Add_Component(LEVEL_STATIC, TEXT("Prototype_Component_VIBuffer_Point"), TEXT("Com_VIBuffer"), (CComponent**)&m_pVIBufferCom)))
 		return E_FAIL;
 
-	/* For.Com_Texture */
-	if (FAILED(__super::Add_Component(LEVEL_STATIC, TEXT("Prototype_Component_Texture_Mask_Electronic"), TEXT("Com_Texture"), (CComponent**)&m_pTextureCom)))
-		return E_FAIL;
-
-	/* For.Com_FlareTexture */
-	if (FAILED(__super::Add_Component(LEVEL_STATIC, TEXT("Prototype_Component_Texture_Mask_Flare"), TEXT("Com_FlareTexture"), (CComponent**)&m_pFlareTextureCom)))
+	/* For.Com_Status */
+	CStatus::STATUS _tStatus;
+	_tStatus.fMaxHp = 0.f;
+	_tStatus.fAttack = 25.f;
+	_tStatus.fHp = _tStatus.fMaxHp;
+	if (FAILED(__super::Add_Component(LEVEL_STATIC, TEXT("Prototype_Component_Status"), TEXT("Com_Status"), (CComponent**)&m_pStatusCom, &_tStatus)))
 		return E_FAIL;
 
 	/* For.Com_ArrowTexture */

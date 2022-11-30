@@ -175,7 +175,8 @@ HRESULT CMagician::Render()
 		{
 			if (FAILED(m_pModelCom->SetUp_OnShader(m_pShaderCom, m_pModelCom->Get_MaterialIndex(i), aiTextureType_DIFFUSE, "g_DiffuseTexture")))
 				return E_FAIL;
-
+			if (FAILED(m_pModelCom->SetUp_OnShader(m_pShaderCom, m_pModelCom->Get_MaterialIndex(i), aiTextureType_NORMALS, "g_NormalTexture")))
+				return E_FAIL;
 
 
 			if (FAILED(m_pModelCom->Render(m_pShaderCom, 1, i)))
@@ -819,6 +820,8 @@ void CMagician::CheckLimit()
 		}
 		else if (m_vecLimitTime[SP_Att2_Loop][1] < m_fPlayTime)
 		{
+			if (!m_pParts[PART_CANESWORD]->Trail_GetOn())
+				m_pParts[PART_CANESWORD]->TrailOn();
 			ChangeCanesword(CANESWORD_L);
 		}
 		else if (m_vecLimitTime[SP_Att2_Loop][0] < m_fPlayTime)
@@ -1085,7 +1088,7 @@ void CMagician::RenderGroup()
 			if (pPart != nullptr)
 				m_pRendererCom->Add_RenderGroup(CRenderer::RENDER_ALPHABLEND, pPart);
 		}
-
+		Compute_CamZ(m_pTransformCom->Get_State(CTransform::STATE_POSITION));
 		m_pRendererCom->Add_RenderGroup(CRenderer::RENDER_ALPHABLEND, this);
 	}
 	else
@@ -1155,18 +1158,23 @@ _bool CMagician::Collision(_float fTimeDelta)
 
 	if ((_pTarget = m_pColliderCom[COLLIDERTYPE_BODY]->Get_Target()) && (CPlayer::ParryL != *static_cast<CPlayer*>(_pTarget)->Get_AnimState()))
 	{
-		CPlayer* _pPlayer = static_cast<CPlayer*>(_pTarget);
-		if (m_eMonsterState == ATTACK_PARRY)
+		if (_pTarget->Get_ObjType() != TYPE_BULLET)
 		{
-			
-			//m_eCurState = Magician_Parry01;
-			
-			_pPlayer->Set_AnimState(CPlayer::SD_HurtIdle);
-			_pPlayer->Cancle();
-			
-			m_eMonsterState = ATTACK_IDLE;
-			return true;
+			CPlayer* _pPlayer = static_cast<CPlayer*>(_pTarget);
+			if (m_eMonsterState == ATTACK_PARRY)
+			{
+
+				//m_eCurState = Magician_Parry01;
+
+				_pPlayer->Set_AnimState(CPlayer::SD_HurtIdle);
+				_pPlayer->Cancle();
+
+				m_eMonsterState = ATTACK_IDLE;
+				Cancle();
+				return true;
+			}
 		}
+
 		
 		if (m_eCurState == Hurt_Long)
 		{
@@ -1226,9 +1234,23 @@ _bool CMagician::Collision(_float fTimeDelta)
 			->Get_State(CTransform::STATE_POSITION));
 
 		On_Collider(COLLIDERTYPE_BODY, false);
+		Cancle();
 		return true;
 	}
 	return false;
+}
+
+void CMagician::Cancle()
+{
+	m_pParts[PART_CANESWORD]->Set_CollisionOn(false);
+	if (m_pParts[PART_CANESWORD]->Trail_GetOn())
+	{
+		m_pParts[PART_CANESWORD]->TrailOff();
+	}
+	ChangeCanesword(CANESWORD_R);
+	m_pParts[PART_CANE]->Set_CollisionOn(false);
+	if (m_pParts[PART_CANE]->Trail_GetOn())
+		m_pParts[PART_CANE]->TrailOff();
 }
 
 void CMagician::On_Collider(MAGICIANCOLLIDER _eCollider, _bool _bCollision)
@@ -1797,7 +1819,7 @@ void CMagician::Pattern_Long(_float fDis)
 			m_eCurState = Magician_Shoot1;
 			break;
 		case 3:
-			m_eCurState = Magician_Shoot2;
+			m_eCurState = Magician_Shoot1;
 			break;
 		}
 	}
@@ -1809,7 +1831,7 @@ void CMagician::Pattern_Long(_float fDis)
 		}
 		else
 		{
-			m_eCurState = Magician_Shoot2;
+			m_eCurState = Magician_Shoot1;
 		}
 	}
 }

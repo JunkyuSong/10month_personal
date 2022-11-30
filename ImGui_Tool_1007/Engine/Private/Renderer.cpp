@@ -251,8 +251,8 @@ HRESULT CRenderer::Draw()
 #ifdef _DEBUG
 
 
-	if (FAILED(Render_Debug()))
-		return E_FAIL;
+	/*if (FAILED(Render_Debug()))
+		return E_FAIL;*/
 
 
 #endif

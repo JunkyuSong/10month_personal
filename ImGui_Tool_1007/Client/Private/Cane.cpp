@@ -45,6 +45,7 @@ void CCane::Tick(_float fTimeDelta)
 void CCane::Tick(_float fTimeDelta, CGameObject * _pUser)
 {
 	m_pTrailCom->Tick(fTimeDelta, m_pTransformCom->Get_WorldMatrix() * m_pParentTransformCom->Get_WorldMatrix());
+	Compute_CamZ(m_pTransformCom->Get_State(CTransform::STATE_POSITION));
 
 	if (m_bColliderOn)
 	{

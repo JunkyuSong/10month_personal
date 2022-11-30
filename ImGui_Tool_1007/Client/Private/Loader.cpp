@@ -65,7 +65,7 @@
 
 #include "Arrow.h"
 #include "Wind.h"
-
+#include "ArrowTarget.h"
 
 CLoader::CLoader(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	: m_pDevice(pDevice)
@@ -922,6 +922,10 @@ HRESULT CLoader::Loading_ForLevel_StageLobby()
 		CArrowTwist::Create(m_pDevice, m_pContext))))
 		return E_FAIL;
 
+	if (FAILED(pGameInstance->Add_Prototype(TEXT("Prototype_GameObject_ArrowTarget"),
+		CArrowTarget::Create(m_pDevice, m_pContext))))
+		return E_FAIL;
+
 	
 
 	lstrcpy(m_szLoadingText, TEXT("텍스쳐를 로딩중입니다."));
@@ -1048,6 +1052,10 @@ HRESULT CLoader::Loading_ForLevel_StageLobby()
 		CNonAnimModel::Create(m_pDevice, m_pContext, "../Bin/Resources/Meshes/Effect/Arrow/", "ArrowTwist2.fbx"))))
 		return E_FAIL;
 	PivotMatrix = XMMatrixScaling(0.01f, 0.01f, 0.01f) * XMMatrixRotationY(XMConvertToRadians(180.0f));
+
+	if (FAILED(pGameInstance->Add_Prototype(LEVEL_STAGE_LOBBY, TEXT("Prototype_Component_Model_Effect_Target"),
+		CNonAnimModel::Create(m_pDevice, m_pContext, "../Bin/Resources/Meshes/Effect/Arrow/", "Target.fbx"))))
+		return E_FAIL;
 
 	//if (FAILED(pGameInstance->Add_Prototype(LEVEL_STAGE_LOBBY, TEXT("Prototype_Component_Model_Effect_Arrow"),
 	//	CNonAnimModel::Create(m_pDevice, m_pContext, "../Bin/Resources/Meshes/Effect/Test/", "ChPang2.fbx"))))

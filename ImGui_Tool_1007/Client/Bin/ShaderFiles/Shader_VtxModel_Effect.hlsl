@@ -12,6 +12,7 @@ tagBoneMatrices		g_BoneMatrices;
 float4		g_fColor;
 
 float		g_fTime;
+float		g_fAppear;
 
 //119.f, 215.f, 223.f
 //187.f, 229.f,217.f
@@ -334,6 +335,30 @@ PS_OUT PS_DEAD_X(PS_IN In)
 	return Out;
 }
 
+PS_OUT PS_TARGET(PS_IN In)
+{
+	PS_OUT		Out = (PS_OUT)0;
+
+	if (In.vTexUV.y < 1.f - g_fAppear)
+		discard;
+
+
+	Out.vDiffuse = g_fColor;
+
+	float2 vMyUV = In.vTexUV;
+	vMyUV.y += g_fTime;
+	vector Mask = g_DiffuseTexture.Sample(DefaultSampler, vMyUV);
+
+
+	Out.vDiffuse *= Mask.r*2.f;
+	if (0 >= Out.vDiffuse.a)
+		discard;
+
+	Out.vDepth = vector(In.vProjPos.z / In.vProjPos.w, In.vProjPos.w, 0.0f, 0.0f);
+
+	return Out;
+}
+
 technique11 DefaultTechnique
 {
 	pass Default
@@ -433,5 +458,15 @@ technique11 DefaultTechnique
 		VertexShader = compile vs_5_0 VS_MAIN();
 		GeometryShader = NULL;
 		PixelShader = compile ps_5_0 PS_DISAPEARTWIST();
+	}
+
+	pass ArrowTarget
+	{
+		SetRasterizerState(RS_CullNone);
+		SetDepthStencilState(DSS_Test, 0);
+		SetBlendState(BS_AlphaBlend, float4(0.f, 0.f, 0.f, 0.f), 0xffffffff);
+		VertexShader = compile vs_5_0 VS_MAIN();
+		GeometryShader = NULL;
+		PixelShader = compile ps_5_0 PS_TARGET();
 	}
 }

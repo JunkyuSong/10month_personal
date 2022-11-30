@@ -266,16 +266,23 @@ PS_OUT PS_RIMLIGHT(PS_IN In)
 
 	return Out;
 }
-
-PS_OUT PS_MAIN2(PS_IN In)
+struct PS_OUT_BLEND
 {
-	PS_OUT		Out = (PS_OUT)0;
+	float4		vDiffuse : SV_TARGET0;
+	float4		vDepth : SV_TARGET1;
+	float4		vDistosion : SV_TARGET2;
+
+};
+PS_OUT_BLEND PS_MAIN2(PS_IN In)
+{
+	PS_OUT_BLEND		Out = (PS_OUT_BLEND)0;
 
 	Out.vDiffuse = (vector)1.f;
 
 	Out.vDiffuse = g_DiffuseTexture.Sample(DefaultSampler, In.vTexUV);
 
 	Out.vDiffuse.a *= (g_fAlpha);
+	Out.vDepth = vector(In.vProjPos.z / In.vProjPos.w, In.vProjPos.w, 0.0f, 0.0f);
 	//Out.vDiffuse = pow(Out.vDiffuse, 2.2f);
 	if (0.f >= Out.vDiffuse.a)
 		discard;

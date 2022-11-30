@@ -44,6 +44,7 @@ void CCane_Sword::Tick(_float fTimeDelta)
 void CCane_Sword::Tick(_float fTimeDelta, CGameObject * _pUser)
 {
 	m_pTrailCom->Tick(fTimeDelta, m_pTransformCom->Get_WorldMatrix() * m_pParentTransformCom->Get_WorldMatrix());
+	Compute_CamZ(m_pTransformCom->Get_State(CTransform::STATE_POSITION));
 
 	if (m_bColliderOn)
 	{
@@ -146,8 +147,8 @@ HRESULT CCane_Sword::Ready_Components()
 	
 	_tInfo._Color = _float4(100.f / 255.f, 216.f / 255.f, 201.f / 255.f, 1.f);
 	_tInfo._HighAndLow.vHigh = _float3(100.0f, 0.f, 0.f);
-	_tInfo._HighAndLow.vLow = _float3(90.0f, 0.f, 0.f);
-	//_tInfo._HighAndLow.vLow = _float3(-5.f, 0.f, 0.f);
+	//_tInfo._HighAndLow.vLow = _float3(90.0f, 0.f, 0.f);
+	_tInfo._HighAndLow.vLow = _float3(-45.f, 0.f, 0.f);
 	AUTOINSTANCE(CGameInstance, _pInstance);
 	m_pTrailCom = static_cast<CTrail_Obj*>(_pInstance->Clone_GameObject(TEXT("Prototype_GameObject_Trail"), &_tInfo));
 	if (m_pTrailCom == nullptr)

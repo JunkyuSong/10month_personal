@@ -128,13 +128,8 @@ void CBoss_Bat::LateTick(_float fTimeDelta)
 		return;
 	}
 
-	if (Collision(fTimeDelta))
-	{
-		CheckAnim();
-		
-		PlayAnimation(fTimeDelta);
-		CheckState(fTimeDelta);
-	}
+	Collision(fTimeDelta);
+
 
 	RenderGroup();
 }
@@ -676,18 +671,6 @@ _bool CBoss_Bat::Collision(_float fTimeDelta)
 
 	if ((_pTarget = m_pColliderCom[COLLIDERTYPE_BODY]->Get_Target()) && (CPlayer::ParryL != *static_cast<CPlayer*>(_pTarget)->Get_AnimState()))
 	{
-		CPlayer* _pPlayer = static_cast<CPlayer*>(_pTarget);
-		if (m_eMonsterState == ATTACK_PARRY)
-		{
-
-			//m_eCurState = Magician_Parry01;
-
-			_pPlayer->Set_AnimState(CPlayer::SD_HurtIdle);
-			_pPlayer->Cancle();
-
-			m_eMonsterState = ATTACK_IDLE;
-			return true;
-		}
 	
 		m_pStatusCom->Damage(static_cast<CStatus*>(_pTarget->Get_ComponentPtr(TEXT("Com_Status")))->Get_Attack());
 		m_fHitCurTime = 0.f;
@@ -899,7 +882,7 @@ HRESULT CBoss_Bat::Ready_Components()
 
 	/* For.Com_Status */
 	CStatus::STATUS _tStatus;
-	_tStatus.fMaxHp = 300.f;
+	_tStatus.fMaxHp = 500.f;
 	_tStatus.fAttack = 20.f;
 	_tStatus.fHp = _tStatus.fMaxHp;
 	if (FAILED(__super::Add_Component(LEVEL_STATIC, TEXT("Prototype_Component_Status"), TEXT("Com_Status"), (CComponent**)&m_pStatusCom, &_tStatus)))
@@ -1008,10 +991,6 @@ void CBoss_Bat::Ready_LimitTime()
 	m_vecLimitTime[BossBat_AttackL_01_2b].push_back(230.f); // 왼손 off
 
 	//BossBat_AttackL_01_2b
-	m_vecLimitTime[BossBat_AttackL_01_3a].push_back(70.f); // 오른손 on
-	m_vecLimitTime[BossBat_AttackL_01_3a].push_back(130.f); // 오른손 off
-
-	//BossBat_AttackL_01_3a
 	m_vecLimitTime[BossBat_AttackL_01_3a].push_back(70.f); // 오른손 on
 	m_vecLimitTime[BossBat_AttackL_01_3a].push_back(130.f); // 오른손 off
 

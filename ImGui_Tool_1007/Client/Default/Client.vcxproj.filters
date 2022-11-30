@@ -337,14 +337,17 @@
     <Filter Include="02. GameObjects\07. Effect\00. MeshEffect\05. Arrow">
       <UniqueIdentifier>{f77da53a-567e-42b8-a1c2-2f0abf730f91}</UniqueIdentifier>
     </Filter>
-    <Filter Include="02. GameObjects\07. Effect\00. MeshEffect\05. Arrow\00. Curve">
-      <UniqueIdentifier>{05bf6333-555b-4dcd-93e7-83a5af5dcc15}</UniqueIdentifier>
-    </Filter>
     <Filter Include="02. GameObjects\07. Effect\00. MeshEffect\06. Wind">
       <UniqueIdentifier>{0574d277-a7f7-4f85-a776-8b0ac3ce1fe0}</UniqueIdentifier>
     </Filter>
     <Filter Include="02. GameObjects\07. Effect\00. MeshEffect\04. DisappearWeapon\00. Bow">
       <UniqueIdentifier>{b81e905d-1cfa-4ac9-a26e-8df630e56f6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. GameObjects\07. Effect\00. MeshEffect\05. Arrow\00. Twist">
+      <UniqueIdentifier>{05bf6333-555b-4dcd-93e7-83a5af5dcc15}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. GameObjects\07. Effect\00. MeshEffect\05. Arrow\01. Target">
+      <UniqueIdentifier>{ff74440c-fc14-483f-900c-1b0540f238d3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -649,13 +652,16 @@
       <Filter>02. GameObjects\07. Effect\00. MeshEffect\04. DisappearWeapon</Filter>
     </ClInclude>
     <ClInclude Include="..\Public\ArrowTwist.h">
-      <Filter>02. GameObjects\07. Effect\00. MeshEffect\05. Arrow\00. Curve</Filter>
+      <Filter>02. GameObjects\07. Effect\00. MeshEffect\05. Arrow\00. Twist</Filter>
     </ClInclude>
     <ClInclude Include="..\Public\Arrow.h">
       <Filter>02. GameObjects\07. Effect\00. MeshEffect\05. Arrow</Filter>
     </ClInclude>
     <ClInclude Include="..\Public\Wind.h">
       <Filter>02. GameObjects\07. Effect\00. MeshEffect\06. Wind</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\ArrowTarget.h">
+      <Filter>02. GameObjects\07. Effect\00. MeshEffect\05. Arrow\01. Target</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -942,13 +948,16 @@
       <Filter>02. GameObjects\07. Effect\00. MeshEffect\04. DisappearWeapon</Filter>
     </ClCompile>
     <ClCompile Include="..\Private\ArrowTwist.cpp">
-      <Filter>02. GameObjects\07. Effect\00. MeshEffect\05. Arrow\00. Curve</Filter>
+      <Filter>02. GameObjects\07. Effect\00. MeshEffect\05. Arrow\00. Twist</Filter>
     </ClCompile>
     <ClCompile Include="..\Private\Arrow.cpp">
       <Filter>02. GameObjects\07. Effect\00. MeshEffect\05. Arrow</Filter>
     </ClCompile>
     <ClCompile Include="..\Private\Wind.cpp">
       <Filter>02. GameObjects\07. Effect\00. MeshEffect\06. Wind</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\ArrowTarget.cpp">
+      <Filter>02. GameObjects\07. Effect\00. MeshEffect\05. Arrow\01. Target</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

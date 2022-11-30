@@ -68,7 +68,7 @@ private:
 
 	CEffect_Particle::OPTION		m_tOption;
 
-	//class CStatus
+	class CStatus*					m_pStatusCom = nullptr;
 
 private:
 	HRESULT Ready_Components();

@@ -191,6 +191,26 @@ CEffect* CEffect_Mgr::Add_Effect(EFFECT_TYPE _eType, void * pArg)
 		}
 		m_pEffects[EFFECT_TWIST].push_back(_pEffect);
 		break;
+	case Client::CEffect_Mgr::EFFECT_TARGET:
+		if (m_pDeadEffects[EFFECT_TARGET].size() > 0)
+		{
+			_pEffect = m_pDeadEffects[EFFECT_TARGET].back();
+			m_pDeadEffects[EFFECT_TARGET].pop_back();
+			_pEffect->Initialize(pArg);
+		}
+		else
+		{
+			_pEffect = static_cast<CEffect*>(_pGameInstance->Clone_GameObject(TEXT("Prototype_GameObject_ArrowTarget"), pArg));
+			if (_pEffect == nullptr)
+			{
+				MSG_BOX(TEXT("fail to clone effect(ArrowTarget)"));
+				Safe_Release(_pEffect);
+				return nullptr;
+			}
+
+		}
+		m_pEffects[EFFECT_TARGET].push_back(_pEffect);
+		break;
 	}
 
 	return _pEffect;

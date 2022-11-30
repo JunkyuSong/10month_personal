@@ -665,20 +665,17 @@ _bool CExtra02::Collision(_float fTimeDelta)
 	{
 		if (TYPE_BULLET == _pTarget->Get_ObjType())
 		{
-			return false;
+			m_pTransformCom->LookAt_ForLandObject(XMLoadFloat4(&CGameInstance::Get_Instance()->Get_PlayerPos()));
 		}
-		CPlayer* _pPlayer = static_cast<CPlayer*>(_pTarget);
-
-		CTransform* _Trans = static_cast<CTransform*>(_instance->Get_Player()->Get_ComponentPtr(TEXT("Com_Transform")));
-		m_pTransformCom->LookAt_ForLandObject(_Trans->Get_State(CTransform::STATE_POSITION));
+		else
+		{
+			CPlayer* _pPlayer = static_cast<CPlayer*>(_pTarget);
+			CTransform* _Trans = static_cast<CTransform*>(_instance->Get_Player()->Get_ComponentPtr(TEXT("Com_Transform")));
+			m_pTransformCom->LookAt_ForLandObject(_Trans->Get_State(CTransform::STATE_POSITION));
+		}
 
 		if (m_eCurState == LV1Villager_M_HurtS_FL)
 		{
-			/*if (m_bAgainAnim == false)
-			{
-				m_bAgainAnim = true;
-				Set_Anim(m_eCurState);
-			}*/
 			m_eCurState = LV1Villager_M_HurtS_FR;
 		}
 		else

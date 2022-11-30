@@ -110,6 +110,7 @@ private:
 
 	void RenderGroup();
 	_bool Collision(_float fTimeDelta);
+	void Cancle();
 
 	void On_Collider(MAGICIANCOLLIDER _eCollider, _bool _bCollision);
 
