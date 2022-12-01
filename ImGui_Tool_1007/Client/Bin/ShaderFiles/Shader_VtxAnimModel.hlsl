@@ -266,13 +266,13 @@ PS_OUT PS_RIMLIGHT(PS_IN In)
 
 
 	Out.vDiffuse = g_DiffuseTexture.Sample(DefaultSampler, In.vTexUV);
-	
+
 	if (0 == Out.vDiffuse.a)
 		discard;
 
 	float4 ToCamera = normalize(g_vCamPosition - In.vWorldPosition);
 
-	
+
 
 	vector		vNormalDesc = g_NormalTexture.Sample(DefaultSampler, In.vTexUV);
 	float3		vNormal = vNormalDesc.xyz * 2.f - 1.f;
@@ -284,7 +284,80 @@ PS_OUT PS_RIMLIGHT(PS_IN In)
 
 	//if (dot(ToCamera, normalize(vector(vNormal, 0.f))) < 0.5f)
 	Out.vDiffuse *= 0.8f;
-	Out.vDiffuse += vector(0.466f,0.96f,0.78f,1.f) * fRimColor;
+	Out.vDiffuse += vector(0.466f, 0.96f, 0.78f, 1.f) * fRimColor;
+
+
+	Out.vNormal = vector(vNormal.xyz * 0.5f + 0.5f, 0.f);
+	Out.vDepth = vector(In.vProjPos.z / In.vProjPos.w, In.vProjPos.w, 0.0f, 0.0f);
+	Out.vDiffuse = pow(Out.vDiffuse, 2.2f);
+	return Out;
+
+	
+}
+
+PS_OUT_NONLIGHT PS_RIMLIGHT_ALPHA(PS_IN In)
+{
+	PS_OUT_NONLIGHT		Out = (PS_OUT_NONLIGHT)0;
+
+
+
+	Out.vDiffuse = g_DiffuseTexture.Sample(DefaultSampler, In.vTexUV);
+
+	if (0 == Out.vDiffuse.a)
+		discard;
+
+	float4 ToCamera = normalize(g_vCamPosition - In.vWorldPosition);
+
+
+
+	vector		vNormalDesc = g_NormalTexture.Sample(DefaultSampler, In.vTexUV);
+	float3		vNormal = vNormalDesc.xyz * 2.f - 1.f;
+	float fRimColor = smoothstep(0.5f, 1.f, 1.f - max(0, dot(ToCamera, normalize(vector(In.vNormal, 0.f)))));
+	float3x3	WorldMatrix = float3x3(In.vTangent, In.vBinormal, In.vNormal);
+	vNormal = normalize(mul(vNormal, WorldMatrix));
+
+
+
+	//if (dot(ToCamera, normalize(vector(vNormal, 0.f))) < 0.5f)
+	Out.vDiffuse *= vector(1.f, 1.f, 1.f, 0.5f);
+	Out.vDiffuse += vector(1.f,0.f,0.f,1.f) * fRimColor;
+
+	Out.vDiffuse.a *= g_fAlpha;
+
+	//Out.vNormal = vector(vNormal.xyz * 0.5f + 0.5f, 0.f);
+	Out.vDepth = vector(In.vProjPos.z / In.vProjPos.w, In.vProjPos.w, 0.0f, 0.0f);
+	//Out.vDiffuse = pow(Out.vDiffuse, 2.2f);
+	return Out;
+}
+
+PS_OUT PS_OUTLINE(PS_IN In)
+{
+	PS_OUT		Out = (PS_OUT)0;
+
+
+
+	Out.vDiffuse = g_DiffuseTexture.Sample(DefaultSampler, In.vTexUV);
+
+	if (0 == Out.vDiffuse.a)
+		discard;
+
+	float4 ToCamera = normalize(g_vCamPosition - In.vWorldPosition);
+
+
+
+	vector		vNormalDesc = g_NormalTexture.Sample(DefaultSampler, In.vTexUV);
+	float3		vNormal = vNormalDesc.xyz * 2.f - 1.f;
+	//float fRimColor = smoothstep(0.5f, 1.f, 1.f - max(0, )));
+	float3x3	WorldMatrix = float3x3(In.vTangent, In.vBinormal, In.vNormal);
+	vNormal = normalize(mul(vNormal, WorldMatrix));
+
+	if (dot(ToCamera, normalize(vector(In.vNormal, 0.f))) < 0.3f)
+	{
+		Out.vDiffuse.rgb = 1.f;
+	}
+
+	//if (dot(ToCamera, normalize(vector(vNormal, 0.f))) < 0.5f)
+	
 
 
 	Out.vNormal = vector(vNormal.xyz * 0.5f + 0.5f, 0.f);
@@ -292,6 +365,7 @@ PS_OUT PS_RIMLIGHT(PS_IN In)
 	Out.vDiffuse = pow(Out.vDiffuse, 2.2f);
 	return Out;
 }
+
 struct PS_OUT_BLEND
 {
 	float4		vDiffuse : SV_TARGET0;
@@ -552,5 +626,15 @@ technique11 DefaultTechnique
 		VertexShader = compile vs_5_0 VS_MAIN();
 		GeometryShader = NULL;
 		PixelShader = compile ps_5_0 PS_NONLIGHT();
+	}
+
+	pass RIMLIGHT_ALPHA
+	{
+		SetRasterizerState(RS_CullNone);
+		SetDepthStencilState(DSS_Default, 0);
+		SetBlendState(BS_AlphaBlend, float4(0.f, 0.f, 0.f, 0.f), 0xffffffff);
+		VertexShader = compile vs_5_0 VS_MAIN();
+		GeometryShader = NULL;
+		PixelShader = compile ps_5_0 PS_RIMLIGHT_ALPHA();
 	}
 }

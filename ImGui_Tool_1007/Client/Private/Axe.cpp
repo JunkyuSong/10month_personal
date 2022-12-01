@@ -119,8 +119,8 @@ HRESULT CAxe::Render()
 	m_pTrailCom->Render();
 
 #ifdef _DEBUG
-	if (nullptr != m_pColliderCom && m_bColliderOn)
-		m_pColliderCom->Render();
+	//if (nullptr != m_pColliderCom && m_bColliderOn)
+	//	m_pColliderCom->Render();
 #endif
 
 	return S_OK;

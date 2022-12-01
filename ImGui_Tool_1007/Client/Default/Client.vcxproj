@@ -182,6 +182,8 @@
     <ClInclude Include="..\Public\Axe.h" />
     <ClInclude Include="..\public\BackGround.h" />
     <ClInclude Include="..\Public\Balloon.h" />
+    <ClInclude Include="..\Public\Bat_Claw.h" />
+    <ClInclude Include="..\Public\Bat_Dummy.h" />
     <ClInclude Include="..\Public\Boss_Bat.h" />
     <ClInclude Include="..\Public\Bow.h" />
     <ClInclude Include="..\public\CameraMgr.h" />
@@ -285,6 +287,8 @@
     <ClCompile Include="..\Private\Axe.cpp" />
     <ClCompile Include="..\private\BackGround.cpp" />
     <ClCompile Include="..\Private\Balloon.cpp" />
+    <ClCompile Include="..\Private\Bat_Claw.cpp" />
+    <ClCompile Include="..\Private\Bat_Dummy.cpp" />
     <ClCompile Include="..\Private\Boss_Bat.cpp" />
     <ClCompile Include="..\Private\Bow.cpp" />
     <ClCompile Include="..\private\CameraMgr.cpp" />

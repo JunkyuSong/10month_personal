@@ -22,6 +22,7 @@ public:
 	struct ARROW
 	{
 		_float4x4 StartMatrix;
+		_float		fUseStealSkill;
 	};
 
 public:
@@ -69,6 +70,7 @@ private:
 	CEffect_Particle::OPTION		m_tOption;
 
 	class CStatus*					m_pStatusCom = nullptr;
+	_float							m_fUseStealSkill = 1.f;
 
 private:
 	HRESULT Ready_Components();

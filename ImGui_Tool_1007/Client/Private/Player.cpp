@@ -716,7 +716,7 @@ void CPlayer::KeyInput_Idle(_float fTimeDelta)
 			m_eCurState = Corvus_PW_Scythe;
 			m_bCollision[COLLIDERTYPE_BODY] = false;
 			m_pSkillParts[SKILL_SCYTHE][0]->Set_CollisionOn(true);
-			m_pStatusCom->Set_Attack(m_fSkillAtts[SKILL_SCYTHE]);
+			m_pStatusCom->Set_Attack(m_fSkillAtts[SKILL_SCYTHE] * m_fUseStealSkill);
 			_bool _bFire(true);
 			m_pSkillParts[SKILL_SCYTHE][0]->Clear(&_bFire);
 		}
@@ -774,12 +774,13 @@ void CPlayer::KeyInput_Idle(_float fTimeDelta)
 				m_eCurState = Corvus_PW_Scythe;
 				m_bCollision[COLLIDERTYPE_BODY] = false;
 				m_pSkillParts[SKILL_SCYTHE][0]->Set_CollisionOn(true);
-				m_pStatusCom->Set_Attack(m_fSkillAtts[SKILL_SCYTHE]);
+				m_pStatusCom->Set_Attack(m_fSkillAtts[SKILL_SCYTHE] * m_fUseStealSkill);
 				_bool _bFire(true);
 				m_pSkillParts[SKILL_SCYTHE][0]->Clear(&_bFire);
 				break;
 			}
 			m_eStealSkill = STATE_END;
+			m_fUseStealSkill = 2.f;
 		}
 	}
 
@@ -1654,6 +1655,7 @@ void CPlayer::CheckEndAnim()
 	XMStoreFloat4(&m_AnimPos, XMVectorSet(0.f, 0.f, 0.f, 1.f));
 	m_PreAnimPos = m_AnimPos;
 	m_bEffect = false;
+	m_fUseStealSkill = 1.f;
 }
 
 void CPlayer::CheckLimit()
@@ -1731,7 +1733,7 @@ void CPlayer::CheckLimit()
 		else if (m_fPlayTime > m_vecLimitTime[Corvus_PW_Axe][3])//모션트레일 off
 		{
 			m_pSkillParts[SKILL_AXE][0]->Set_CollisionOn(true);
-			m_pStatusCom->Set_Attack(m_fSkillAtts[SKILL_AXE]);
+			m_pStatusCom->Set_Attack(m_fSkillAtts[SKILL_AXE] * m_fUseStealSkill);
 			m_bMotionPlay = false;
 		}
 		else if (m_fPlayTime > m_vecLimitTime[Corvus_PW_Axe][2])//모션트레일 off
@@ -1800,7 +1802,7 @@ void CPlayer::CheckLimit()
 			if (!m_pSkillParts[SKILL_DUAL][HAND_RIGHT]->Trail_GetOn())
 				m_pSkillParts[SKILL_DUAL][HAND_RIGHT]->TrailOn();
 			m_pSkillParts[SKILL_DUAL][HAND_LEFT]->Set_CollisionOn(true);
-			m_pStatusCom->Set_Attack(m_fSkillAtts[SKILL_DUAL]);
+			m_pStatusCom->Set_Attack(m_fSkillAtts[SKILL_DUAL] * m_fUseStealSkill);
 			m_pSkillParts[SKILL_DUAL][HAND_RIGHT]->Set_CollisionOn(true);
 		}
 		break;
@@ -1826,6 +1828,7 @@ void CPlayer::CheckLimit()
 				//static_cast<CBow*>(m_pSkillParts[SKILL_BOW][0])->Shoot();
 
 				CArrow::ARROW _tArrow;
+				_tArrow.fUseStealSkill = m_fUseStealSkill;
 				XMStoreFloat4x4(&_tArrow.StartMatrix, /*m_pTransformCom->Get_WorldMatrix() * */m_pTransformCom->Get_WorldMatrix());
 				CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_ARROW, &_tArrow);
 
@@ -2030,7 +2033,7 @@ void CPlayer::CheckLimit()
 		else if (m_vecLimitTime[Corvus_PW_Halberds][2] < m_fPlayTime)
 		{
 			m_pSkillParts[SKILL_LENCE][0]->Set_CollisionOn(true);
-			m_pStatusCom->Set_Attack(m_fSkillAtts[SKILL_LENCE]);
+			m_pStatusCom->Set_Attack(m_fSkillAtts[SKILL_LENCE] * m_fUseStealSkill);
 			for (auto& _pEffect : m_vecWind)
 				_pEffect->Setting(m_pTransformCom->Get_State(CTransform::STATE_POSITION), false);
 		}
@@ -3222,7 +3225,7 @@ HRESULT CPlayer::Ready_PlayerParts_Skill()
 		return E_FAIL;
 	m_pSkillParts[SKILL_SCYTHE].push_back(pGameObject);
 	m_pSkillHands[SKILL_SCYTHE].push_back(HAND_RIGHT);
-	m_fSkillAtts[SKILL_DUAL] = 90.f;
+	m_fSkillAtts[SKILL_SCYTHE] = 90.f;
 
 	pGameObject = static_cast<CWeapon*>(pGameInstance->Clone_GameObject(TEXT("Prototype_GameObject_Weapon_Lence")));
 
@@ -3230,7 +3233,7 @@ HRESULT CPlayer::Ready_PlayerParts_Skill()
 		return E_FAIL;
 	m_pSkillParts[SKILL_LENCE].push_back(pGameObject);
 	m_pSkillHands[SKILL_LENCE].push_back(HAND_RIGHT);
-	m_fSkillAtts[SKILL_DUAL] = 75.f;
+	m_fSkillAtts[SKILL_LENCE] = 75.f;
 
 	return S_OK;
 }

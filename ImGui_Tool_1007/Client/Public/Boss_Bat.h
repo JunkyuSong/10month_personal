@@ -122,6 +122,11 @@ private:
 
 	_bool					m_bJumpAnim = false;
 
+	_bool					m_bEffect = false;
+
+	list<class CBat_Dummy*>		m_listMotion;
+	list<class CBat_Dummy*>		m_listDeadMotion;
+
 private:
 	HRESULT Ready_Components();
 	HRESULT SetUp_ShaderResources();

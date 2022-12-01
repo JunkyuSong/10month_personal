@@ -88,6 +88,8 @@ HRESULT CArrow::Initialize(void * pArg)
 	m_tOption.bPlayerDir = true;
 	XMStoreFloat4x4(&m_tOption.matPlayerAxix, m_pTransformCom->Get_WorldMatrix());
 
+	m_pStatusCom->Set_Attack(m_fUseStealSkill * 25.f);
+
 	return S_OK;
 }
 

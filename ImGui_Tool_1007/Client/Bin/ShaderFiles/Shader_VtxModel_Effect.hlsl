@@ -114,6 +114,23 @@ PS_OUT PS_MAIN(PS_IN In)
 	return Out;
 }
 
+PS_OUT PS_BAT_CLAW(PS_IN In)
+{
+	PS_OUT		Out = (PS_OUT)0;
+
+
+	vector Mask = g_DiffuseTexture.Sample(DefaultSampler, In.vTexUV);
+
+	Out.vDiffuse = Mask;
+	Out.vDiffuse.a = Mask.r;
+	if (0 >= Out.vDiffuse.a)
+		discard;
+
+	Out.vDepth = vector(In.vProjPos.z / In.vProjPos.w, In.vProjPos.w, 0.0f, 0.0f);
+	//Out.vDiffuse = pow(Out.vDiffuse, 2.2f);
+	return Out;
+}
+
 PS_OUT PS_TWIST(PS_IN In)
 {
 	PS_OUT		Out = (PS_OUT)0;
@@ -224,6 +241,24 @@ PS_OUT PS_CLAWDEAD(PS_IN In)
 
 	Out.vDepth = vector(In.vProjPos.z / In.vProjPos.w, In.vProjPos.w, 0.0f, 0.0f);
 	Out.vDiffuse = pow(Out.vDiffuse, 2.2f);
+	return Out;
+}
+
+PS_OUT PS_BAT_CLAW_DEAD(PS_IN In)
+{
+	PS_OUT		Out = (PS_OUT)0;
+
+	vector Mask = g_DiffuseTexture.Sample(DefaultSampler, In.vTexUV);
+
+	Out.vDiffuse = Mask;
+	Out.vDiffuse.a = Mask.r;
+	Out.vDiffuse.a -= g_fTime;
+
+	if (0 >= Out.vDiffuse.a)
+		discard;
+
+	Out.vDepth = vector(In.vProjPos.z / In.vProjPos.w, In.vProjPos.w, 0.0f, 0.0f);
+	//Out.vDiffuse = pow(Out.vDiffuse, 2.2f);
 	return Out;
 }
 
@@ -468,5 +503,25 @@ technique11 DefaultTechnique
 		VertexShader = compile vs_5_0 VS_MAIN();
 		GeometryShader = NULL;
 		PixelShader = compile ps_5_0 PS_TARGET();
+	}
+
+	pass BAT_CLAW
+	{
+		SetRasterizerState(RS_CullNone);
+		SetDepthStencilState(DSS_Test, 0);
+		SetBlendState(BS_AlphaBlend, float4(0.f, 0.f, 0.f, 0.f), 0xffffffff);
+		VertexShader = compile vs_5_0 VS_MAIN();
+		GeometryShader = NULL;
+		PixelShader = compile ps_5_0 PS_BAT_CLAW();
+	}
+
+	pass BAT_CLAW_DEAD
+	{
+		SetRasterizerState(RS_CullNone);
+		SetDepthStencilState(DSS_Default, 0);
+		SetBlendState(BS_AlphaBlend, float4(0.f, 0.f, 0.f, 0.f), 0xffffffff);
+		VertexShader = compile vs_5_0 VS_MAIN();
+		GeometryShader = NULL;
+		PixelShader = compile ps_5_0 PS_BAT_CLAW_DEAD();
 	}
 }

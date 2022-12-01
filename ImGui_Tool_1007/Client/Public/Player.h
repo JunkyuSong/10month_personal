@@ -176,6 +176,7 @@ private:
 
 	vector<class CWind*>				m_vecWind;
 	STATE								m_eStealSkill = STATE_END;
+	_float								m_fUseStealSkill = 1.f;
 
 private:
 	CShader*				m_pShaderCom = nullptr;

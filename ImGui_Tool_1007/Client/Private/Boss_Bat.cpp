@@ -12,6 +12,13 @@
 #include "Camera.h"
 #include "Camera_CutScene_Enter.h"
 
+#include "Effect_Mgr.h"
+
+#include "Bat_Claw.h"
+
+#include "Bat_Dummy.h"
+#include "MotionTrail.h"
+
 CBoss_Bat::CBoss_Bat(ID3D11Device * pDevice, ID3D11DeviceContext * pContext)
 	: CMonster(pDevice, pContext)
 {
@@ -119,6 +126,20 @@ void CBoss_Bat::Tick(_float fTimeDelta)
 	
 
 	Update_Collider();
+
+	for (auto iter = m_listMotion.begin(); iter != m_listMotion.end();)
+	{
+		(*iter)->Tick(fTimeDelta);
+		if ((*iter)->Get_Tick() > 1.f)
+		{
+			(*iter)->Set_Tick(0.f);
+			CBat_Dummy* _Motion = (*iter);
+			iter = m_listMotion.erase(iter);
+			m_listDeadMotion.push_back(_Motion);
+		}
+		else
+			++iter;
+	}
 }
 
 void CBoss_Bat::LateTick(_float fTimeDelta)
@@ -159,12 +180,12 @@ HRESULT CBoss_Bat::Render()
 			return E_FAIL;
 	}
 
-	/*for (_uint i = 0; i < COLLILDERTYPE_END; ++i)
+	for (_uint i = 0; i < COLLILDERTYPE_END; ++i)
 	{
 		if (nullptr != m_pColliderCom[i])
 			m_pColliderCom[i]->Render();
-	}*/
-	//m_pNavigationCom->Render();
+	}
+
 
 	return S_OK;
 }
@@ -214,16 +235,20 @@ void CBoss_Bat::CheckEndAnim()
 {
 	m_fPlaySpeed = 1.f;
 	m_iPass = 0;
+	m_bEffect = false;
 	switch (m_eCurState)
 	{
 	case Client::CBoss_Bat::BossBat_AttackL_01_1:
 		m_eCurState = BossBat_Idle;
+		//m_eCurState = BossBat_AttackL_01_1;
 		break;
 	case Client::CBoss_Bat::BossBat_AttackL_01_2b:
 		m_eCurState = BossBat_Idle;
+		
 		break;
 	case Client::CBoss_Bat::BossBat_AttackL_01_3a:
 		m_eCurState = BossBat_Idle;
+		//m_eCurState = BossBat_AttackL_01_3a;
 		break;
 	case Client::CBoss_Bat::BossBat_AttackR_01_1:
 		m_eCurState = BossBat_Idle;
@@ -272,6 +297,7 @@ void CBoss_Bat::CheckEndAnim()
 		{
 			AUTOINSTANCE(CCameraMgr, _pCamMgr);
 			_pCamMgr->Change_Camera(CCameraMgr::CAMERA_PLAYER);
+			//m_eCurState = BossBat_Idle;
 			m_eCurState = BossBat_Idle;
 		}
 		break;
@@ -359,6 +385,7 @@ void CBoss_Bat::CheckState(_float fTimeDelta)
 		break;
 	}
 	Get_AnimMat();
+	
 }
 
 void CBoss_Bat::CheckLimit()
@@ -368,11 +395,26 @@ void CBoss_Bat::CheckLimit()
 	switch (m_eCurState)
 	{
 	case Client::CBoss_Bat::BossBat_AttackL_01_1:
-		if (m_vecLimitTime[BossBat_AttackL_01_1][1] < m_fPlayTime)
+		if (m_vecLimitTime[BossBat_AttackL_01_1][2] < m_fPlayTime)
 		{
 			//On_Collider(COLLIDERTYPE_BODY, true);
 			On_Collider(COLLIDERTYPE_HAND_L, false);
 			m_fPlaySpeed = 1.f;
+		}
+		else if (m_vecLimitTime[BossBat_AttackL_01_1][1] < m_fPlayTime)
+		{
+			//if (!m_bEffect)
+			{
+				CBat_Claw::CLAW_DESC _tInfo;
+				_tInfo.TargetMatrix = m_pTransformCom->Get_WorldFloat4x4();
+				_tInfo.eClaw = CBat_Claw::CLAWTYPE_LEFT;
+				XMStoreFloat3(&_tInfo.vDir, m_pTransformCom->Get_State(CTransform::STATE_LOOK));
+				_tInfo.vDis = { -2.f,2.f,3.5f };
+				_tInfo.vAngle = { 0.f,0.f,-60.f };
+				CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_BATCLAW, &_tInfo);
+				m_bEffect = true;
+			}
+
 		}
 		else if (m_vecLimitTime[BossBat_AttackL_01_1][0] < m_fPlayTime)
 		{
@@ -382,11 +424,25 @@ void CBoss_Bat::CheckLimit()
 		}
 		break;
 	case Client::CBoss_Bat::BossBat_AttackL_01_2b:
-		if (m_vecLimitTime[BossBat_AttackL_01_2b][1] < m_fPlayTime)
+		if (m_vecLimitTime[BossBat_AttackL_01_2b][2] < m_fPlayTime)
 		{
 			//On_Collider(COLLIDERTYPE_BODY, true);
 			On_Collider(COLLIDERTYPE_HAND_L, false);
 			m_fPlaySpeed = 1.f;
+		}
+		else if (m_vecLimitTime[BossBat_AttackL_01_2b][1] < m_fPlayTime)
+		{
+		//	if (!m_bEffect)
+			{
+				CBat_Claw::CLAW_DESC _tInfo;
+				_tInfo.TargetMatrix = m_pTransformCom->Get_WorldFloat4x4();
+				_tInfo.eClaw = CBat_Claw::CLAWTYPE_LEFT;
+				XMStoreFloat3(&_tInfo.vDir, m_pTransformCom->Get_State(CTransform::STATE_LOOK));
+				_tInfo.vDis = { -2.f,3.9f,3.5f };
+				_tInfo.vAngle = { 130.f,0.f,-30.f };
+				CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_BATCLAW, &_tInfo);
+				m_bEffect = true;
+			}
 		}
 		else if (m_vecLimitTime[BossBat_AttackL_01_2b][0] < m_fPlayTime)
 		{
@@ -396,11 +452,25 @@ void CBoss_Bat::CheckLimit()
 		}
 		break;
 	case Client::CBoss_Bat::BossBat_AttackL_01_3a:
-		if (m_vecLimitTime[BossBat_AttackL_01_3a][1] < m_fPlayTime)
+		if (m_vecLimitTime[BossBat_AttackL_01_3a][2] < m_fPlayTime)
 		{
 			//On_Collider(COLLIDERTYPE_BODY, true);
 			On_Collider(COLLIDERTYPE_HAND_R, false);
 			m_fPlaySpeed = 1.f;
+		}
+		else if (m_vecLimitTime[BossBat_AttackL_01_3a][1] < m_fPlayTime)
+		{
+		//	if (!m_bEffect)
+			{
+				CBat_Claw::CLAW_DESC _tInfo;
+				_tInfo.TargetMatrix = m_pTransformCom->Get_WorldFloat4x4();
+				_tInfo.eClaw = CBat_Claw::CLAWTYPE_LEFT;
+				XMStoreFloat3(&_tInfo.vDir, m_pTransformCom->Get_State(CTransform::STATE_LOOK));
+				_tInfo.vDis = { 3.5f,2.f,4.f };
+				_tInfo.vAngle = { 0.f,0.f,-25.f };
+				CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_BATCLAW, &_tInfo);
+				m_bEffect = true;
+			}
 		}
 		else if (m_vecLimitTime[BossBat_AttackL_01_3a][0] < m_fPlayTime)
 		{
@@ -410,12 +480,26 @@ void CBoss_Bat::CheckLimit()
 		}
 		break;
 	case Client::CBoss_Bat::BossBat_AttackR_01_1:
-		if (m_vecLimitTime[BossBat_AttackR_01_1][1] < m_fPlayTime)
+		if (m_vecLimitTime[BossBat_AttackR_01_1][2] < m_fPlayTime)
 		{
 			CCameraMgr::Get_Instance()->Get_Cam(CCameraMgr::CAMERA_PLAYER)->Shake_Off();
 			//On_Collider(COLLIDERTYPE_BODY, true);
 			On_Collider(COLLIDERTYPE_HAND_R, false);
 			m_fPlaySpeed = 1.f;
+		}
+		else if (m_vecLimitTime[BossBat_AttackR_01_1][1] < m_fPlayTime)
+		{
+		//	if (!m_bEffect)
+			{
+				CBat_Claw::CLAW_DESC _tInfo;
+				_tInfo.TargetMatrix = m_pTransformCom->Get_WorldFloat4x4();
+				_tInfo.eClaw = CBat_Claw::CLAWTYPE_LEFT;
+				XMStoreFloat3(&_tInfo.vDir, m_pTransformCom->Get_State(CTransform::STATE_LOOK));
+				_tInfo.vDis = { 2.5f,2.f,4.5f };
+				_tInfo.vAngle = { 0.f,0.f,-25.f };
+				CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_BATCLAW, &_tInfo);
+				m_bEffect = true;
+			}
 		}
 		else if (m_vecLimitTime[BossBat_AttackR_01_1][0] < m_fPlayTime)
 		{
@@ -426,12 +510,26 @@ void CBoss_Bat::CheckLimit()
 		}
 		break;
 	case Client::CBoss_Bat::BossBat_AttackR_01_2b:
-		if (m_vecLimitTime[BossBat_AttackR_01_2b][1] < m_fPlayTime)
+		if (m_vecLimitTime[BossBat_AttackR_01_2b][2] < m_fPlayTime)
 		{
 			CCameraMgr::Get_Instance()->Get_Cam(CCameraMgr::CAMERA_PLAYER)->Shake_Off();
 			m_fPlaySpeed = 1.f;
 			//On_Collider(COLLIDERTYPE_BODY, true);
 			On_Collider(COLLIDERTYPE_HAND_R, false);
+		}
+		else if (m_vecLimitTime[BossBat_AttackR_01_2b][1] < m_fPlayTime)
+		{
+		//	if (!m_bEffect)
+			{
+				CBat_Claw::CLAW_DESC _tInfo;
+				_tInfo.TargetMatrix = m_pTransformCom->Get_WorldFloat4x4();
+				_tInfo.eClaw = CBat_Claw::CLAWTYPE_LEFT;
+				XMStoreFloat3(&_tInfo.vDir, m_pTransformCom->Get_State(CTransform::STATE_LOOK));
+				_tInfo.vDis = { 4.f,3.9f,3.5f };
+				_tInfo.vAngle = { 130.f,0.f,-50.f };
+				CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_BATCLAW, &_tInfo);
+				m_bEffect = true;
+			}
 		}
 		else if (m_vecLimitTime[BossBat_AttackR_01_2b][0] < m_fPlayTime)
 		{
@@ -442,11 +540,37 @@ void CBoss_Bat::CheckLimit()
 		}
 		break;
 	case Client::CBoss_Bat::BossBat_Bite_2:
-		if (m_vecLimitTime[BossBat_Bite_2][1] < m_fPlayTime)
+		if (m_vecLimitTime[BossBat_Bite_2][2] < m_fPlayTime)
 		{
 			m_fPlaySpeed = 1.f;
 			//On_Collider(COLLIDERTYPE_BODY, true);
 			On_Collider(COLLIDERTYPE_MOUSE, false);
+		}
+		else if (m_vecLimitTime[BossBat_Bite_2][1] < m_fPlayTime)
+		{
+			if (!m_bEffect)
+			{
+				if (m_listDeadMotion.empty())
+				{
+					CMotionTrail* _Motion = CMotionTrail::Create(m_pDevice, m_pContext, m_pModelCom);
+					if (_Motion == nullptr)
+					{
+						MSG_BOX(TEXT("creat Motion"));
+						return;
+					}
+					_Motion->Set_CombinedMat(m_pModelCom->Get_HierarchyNodeVector(), m_pTransformCom->Get_WorldFloat4x4());
+					CBat_Dummy*		_pDummy = CBat_Dummy::Creat(m_pDevice, m_pContext, _Motion, m_pTransformCom->Get_WorldFloat4x4());
+					m_listMotion.push_back(_pDummy);
+				}
+				else
+				{
+					CBat_Dummy*		_pDummy = m_listDeadMotion.back();
+					_pDummy->Set_CombinedMat(m_pModelCom->Get_HierarchyNodeVector(), m_pTransformCom->Get_WorldFloat4x4());
+					m_listMotion.push_back(_pDummy);
+					m_listDeadMotion.pop_back();
+				}
+				m_bEffect = true;
+			}
 		}
 		else if (m_vecLimitTime[BossBat_Bite_2][0] < m_fPlayTime)
 		{
@@ -662,6 +786,11 @@ void CBoss_Bat::RenderGroup()
 		return;
 
 	m_pRendererCom->Add_RenderGroup(CRenderer::RENDER_NONALPHABLEND, this);
+
+	for (auto& _motion : m_listMotion)
+	{
+		m_pRendererCom->Add_RenderGroup(CRenderer::RENDER_ALPHABLEND, _motion);
+	}
 }
 
 _bool CBoss_Bat::Collision(_float fTimeDelta)
@@ -802,9 +931,9 @@ void CBoss_Bat::Pattern()
 	// 공격 패턴 짜기 시작
 	//플레이어와의 거리
 	
-	if (_fDistance < 10.f)
+	if (_fDistance < 15.f)
 	{
-		_uint ChanceShort = _pInstance->Rand_Int(0, 7);
+		_uint ChanceShort = _pInstance->Rand_Int(0, 6);
 		switch (ChanceShort)
 		{
 		case 0:
@@ -825,17 +954,15 @@ void CBoss_Bat::Pattern()
 		case 5:
 			m_eCurState = BossBat_Bite_2;
 			break;
+		
 		case 6:
-			m_eCurState = BossBat_Dash;
-			break;
-		case 7:
 			m_eCurState = BossBat_JumpSmashL;
 			break;
 		}
 	}
 	else
 	{
-		_uint ChanceShort = _pInstance->Rand_Int(0, 4);
+		_uint ChanceShort = _pInstance->Rand_Int(0, 5);
 		switch (ChanceShort)
 		{
 		case 0:
@@ -852,6 +979,9 @@ void CBoss_Bat::Pattern()
 			break;
 		case 4:
 			m_eCurState = BossBat_FTurn_R;
+			break;
+		case 5:
+			m_eCurState = BossBat_Dash;
 			break;
 		}
 
@@ -898,7 +1028,7 @@ HRESULT CBoss_Bat::Ready_Components()
 
 	/* For.Com_Status */
 	CStatus::STATUS _tStatus;
-	_tStatus.fMaxHp = 10.f;
+	_tStatus.fMaxHp = 1000.f;
 	_tStatus.fAttack = 20.f;
 	_tStatus.fHp = _tStatus.fMaxHp;
 	if (FAILED(__super::Add_Component(LEVEL_STATIC, TEXT("Prototype_Component_Status"), TEXT("Com_Status"), (CComponent**)&m_pStatusCom, &_tStatus)))
@@ -921,7 +1051,7 @@ HRESULT CBoss_Bat::Ready_Components()
 		return E_FAIL;
 
 	ZeroMemory(&ColliderDesc, sizeof(CCollider::COLLIDERDESC));
-	ColliderDesc.vSize = _float3(1.5f, 1.5f, 1.5f);
+	ColliderDesc.vSize = _float3(3.5f, 3.5f, 3.5f);
 	_float3 vCenter = _float3(m_pModelCom->Get_HierarchyNode("middle_01_r")->Get_Trans()._41,
 		m_pModelCom->Get_HierarchyNode("middle_01_r")->Get_Trans()._42,
 		m_pModelCom->Get_HierarchyNode("middle_01_r")->Get_Trans()._43);
@@ -931,7 +1061,7 @@ HRESULT CBoss_Bat::Ready_Components()
 		return E_FAIL;
 
 	ZeroMemory(&ColliderDesc, sizeof(CCollider::COLLIDERDESC));
-	ColliderDesc.vSize = _float3(1.5f, 1.5f, 1.5f);
+	ColliderDesc.vSize = _float3(3.5f, 3.5f, 3.5f);
 	vCenter = _float3(m_pModelCom->Get_HierarchyNode("middle_01_l")->Get_Trans()._41,
 		m_pModelCom->Get_HierarchyNode("middle_01_l")->Get_Trans()._42,
 		m_pModelCom->Get_HierarchyNode("middle_01_l")->Get_Trans()._43);
@@ -941,7 +1071,7 @@ HRESULT CBoss_Bat::Ready_Components()
 		return E_FAIL;
 
 	ZeroMemory(&ColliderDesc, sizeof(CCollider::COLLIDERDESC));
-	ColliderDesc.vSize = _float3(1.7f, 1.8f, 1.7f);
+	ColliderDesc.vSize = _float3(3.7f, 3.8f, 3.7f);
 	ColliderDesc.vCenter = _float3(0.f, 2.7f, 5.f);
 	ColliderDesc.vRotation = _float3(0.f, 0.f, 0.f);
 	if (FAILED(__super::Add_Component(LEVEL_GAMEPLAY, TEXT("Prototype_Component_Collider_OBB"), TEXT("Com_OBB_Mouse"), (CComponent**)&m_pColliderCom[COLLIDERTYPE_MOUSE], &ColliderDesc)))
@@ -998,28 +1128,34 @@ HRESULT CBoss_Bat::SetUp_ShaderResources()
 
 void CBoss_Bat::Ready_LimitTime()
 {
-	//BossBat_AttackL_01_1
+	//BossBat_AttackL_01_1 - 185에 앞에 트레일
 	m_vecLimitTime[BossBat_AttackL_01_1].push_back(120.f); // 왼손 on
+	m_vecLimitTime[BossBat_AttackL_01_1].push_back(185.f); // 이펙트
 	m_vecLimitTime[BossBat_AttackL_01_1].push_back(240.f); // 왼손 off
 
-	//BossBat_AttackL_01_2b
+	//BossBat_AttackL_01_2b - 94에 뒤로 트레일
 	m_vecLimitTime[BossBat_AttackL_01_2b].push_back(60.f); // 왼손 on
+	m_vecLimitTime[BossBat_AttackL_01_2b].push_back(94.f); // 이펙트
 	m_vecLimitTime[BossBat_AttackL_01_2b].push_back(230.f); // 왼손 off
 
-	//BossBat_AttackL_01_2b
+	//BossBat_AttackL_01_3a - 94에 앞으로 트레일
 	m_vecLimitTime[BossBat_AttackL_01_3a].push_back(70.f); // 오른손 on
+	m_vecLimitTime[BossBat_AttackL_01_3a].push_back(94.f); // 이펙트
 	m_vecLimitTime[BossBat_AttackL_01_3a].push_back(130.f); // 오른손 off
 
-	//BossBat_AttackR_01_1
+	//BossBat_AttackR_01_1 - 100에 앞으로 트레일
 	m_vecLimitTime[BossBat_AttackR_01_1].push_back(40.f); // 오른손 on
+	m_vecLimitTime[BossBat_AttackR_01_1].push_back(100.f); // 이펙트
 	m_vecLimitTime[BossBat_AttackR_01_1].push_back(120.f); // 오른손 off
 
-	//BossBat_AttackR_01_2b
+	//BossBat_AttackR_01_2b - 80에 뒤로 트레일
 	m_vecLimitTime[BossBat_AttackR_01_2b].push_back(50.f); // 오른손 on
+	m_vecLimitTime[BossBat_AttackR_01_2b].push_back(80.f); // 이펙트
 	m_vecLimitTime[BossBat_AttackR_01_2b].push_back(230.f); // 오른손 off
 
-	//BossBat_Bite_2 -> 여기부터
+	//BossBat_Bite_2 -> 여기부터 - 185 정도에 하나 캡쳐
 	m_vecLimitTime[BossBat_Bite_2].push_back(120.f); // 입 on
+	m_vecLimitTime[BossBat_Bite_2].push_back(185.f); // 이펙트
 	m_vecLimitTime[BossBat_Bite_2].push_back(260.f); // 입 off
 
 	//BossBat_Dash -> 여기부터

@@ -1,20 +1,20 @@
 #include "stdafx.h"
-#include "..\Public\Dummy.h"
+#include "..\Public\Bat_Dummy.h"
 #include "MotionTrail.h"
 #include "GameInstance.h"
 
 
-CDummy::CDummy(ID3D11Device * pDevice, ID3D11DeviceContext * pContext)
+CBat_Dummy::CBat_Dummy(ID3D11Device * pDevice, ID3D11DeviceContext * pContext)
 	: CGameObject(pDevice, pContext)
 {
 }
 
-CDummy::CDummy(const CDummy & rhs)
+CBat_Dummy::CBat_Dummy(const CBat_Dummy & rhs)
 	: CGameObject(rhs)
 {
 }
 
-HRESULT CDummy::Initialize_Prototype(CMotionTrail * _pModel, _float4x4 _ParentWorld)
+HRESULT CBat_Dummy::Initialize_Prototype(CMotionTrail * _pModel, _float4x4 _ParentWorld)
 {
 	m_pModelCom = _pModel;
 
@@ -36,22 +36,29 @@ HRESULT CDummy::Initialize_Prototype(CMotionTrail * _pModel, _float4x4 _ParentWo
 	return S_OK;
 }
 
-void CDummy::Tick(_float fTimeDelta)
+void CBat_Dummy::Tick(_float fTimeDelta)
 {
 	m_pModelCom->Tick(fTimeDelta);
+	_float3 vScale = m_pTransCom->Get_Scale();
+	vScale.x *= 1.005f;
+	vScale.y *= 1.005f;
+	vScale.z *= 1.005f;
+	m_pTransCom->Set_Scale(XMLoadFloat3(&vScale));
+	Set_CombinedMat(m_pModelCom->Get_HierarchyNodeVector(), m_pTransCom->Get_WorldFloat4x4());
 	Compute_CamZ(m_pTransCom->Get_State(CTransform::STATE_POSITION));
 }
 
-HRESULT CDummy::Render()
+HRESULT CBat_Dummy::Render()
 {
 	AUTOINSTANCE(CGameInstance, pGameInstance);
+
 	if (FAILED(m_pShaderCom->Set_RawValue("g_WorldMatrix", &m_pTransCom->Get_WorldFloat4x4_TP(), sizeof(_float4x4))))
 		return E_FAIL;
 	if (FAILED(m_pShaderCom->Set_RawValue("g_ViewMatrix", &pGameInstance->Get_TransformFloat4x4_TP(CPipeLine::D3DTS_VIEW), sizeof(_float4x4))))
 		return E_FAIL;
 	if (FAILED(m_pShaderCom->Set_RawValue("g_ProjMatrix", &pGameInstance->Get_TransformFloat4x4_TP(CPipeLine::D3DTS_PROJ), sizeof(_float4x4))))
 		return E_FAIL;
-	_float	fAlpha = 1.f - m_pModelCom->Get_Tick() / 0.5f;
+	_float	fAlpha = (1.f - m_pModelCom->Get_Tick()) / 1.f;
 	if (FAILED(m_pShaderCom->Set_RawValue("g_fAlpha", &fAlpha, sizeof(_float))))
 		return E_FAIL;
 
@@ -61,42 +68,42 @@ HRESULT CDummy::Render()
 		if (FAILED(m_pModelCom->SetUp_OnShader(m_pShaderCom, m_pModelCom->Get_MaterialIndex(i), aiTextureType_DIFFUSE, "g_DiffuseTexture")))
 			return E_FAIL;
 
-		if (FAILED(m_pModelCom->Render(m_pShaderCom, 2, i)))
+		if (FAILED(m_pModelCom->Render(m_pShaderCom, 11, i)))
 			return E_FAIL;
 	}
 
 	return S_OK;
 }
 
-void CDummy::Set_World(_float4x4 _ParentWorld)
+void CBat_Dummy::Set_World(_float4x4 _ParentWorld)
 {
 	m_pTransCom->Set_WorldFloat4x4(_ParentWorld);
 }
 
-_float CDummy::Get_Tick()
+_float CBat_Dummy::Get_Tick()
 {
 	return m_pModelCom->Get_Tick();
 }
 
-void CDummy::Set_Tick(_float _tick)
+void CBat_Dummy::Set_Tick(_float _tick)
 {
 	m_pModelCom->Set_Tick(_tick);
 }
 
-void CDummy::Set_CombinedMat(vector<class CHierarchyNode*>* _vecParentBones, _float4x4 _pParentWorld)
+void CBat_Dummy::Set_CombinedMat(vector<class CHierarchyNode*>* _vecParentBones, _float4x4 _pParentWorld)
 {
 	m_pTransCom->Set_WorldFloat4x4(_pParentWorld);
 	m_pModelCom->Set_CombinedMat(_vecParentBones, _pParentWorld);
 }
 
-CGameObject * CDummy::Clone(void * pArg)
+CGameObject * CBat_Dummy::Clone(void * pArg)
 {
 	return nullptr;
 }
 
-CDummy * CDummy::Creat(ID3D11Device * pDevice, ID3D11DeviceContext * pContext, CMotionTrail * _pModel, _float4x4 _ParentWorld)
+CBat_Dummy * CBat_Dummy::Creat(ID3D11Device * pDevice, ID3D11DeviceContext * pContext, CMotionTrail * _pModel, _float4x4 _ParentWorld)
 {
-	CDummy*		pInstance = new CDummy(pDevice, pContext);
+	CBat_Dummy*		pInstance = new CBat_Dummy(pDevice, pContext);
 
 	if (FAILED(pInstance->Initialize_Prototype(_pModel, _ParentWorld)))
 	{
@@ -107,7 +114,7 @@ CDummy * CDummy::Creat(ID3D11Device * pDevice, ID3D11DeviceContext * pContext, C
 	return pInstance;
 }
 
-void CDummy::Free()
+void CBat_Dummy::Free()
 {
 	__super::Free();
 	Safe_Release(m_pModelCom);

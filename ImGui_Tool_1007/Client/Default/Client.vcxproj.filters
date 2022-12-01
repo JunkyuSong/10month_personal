@@ -349,6 +349,12 @@
     <Filter Include="02. GameObjects\07. Effect\00. MeshEffect\05. Arrow\01. Target">
       <UniqueIdentifier>{ff74440c-fc14-483f-900c-1b0540f238d3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="02. GameObjects\05. Monster\Bat\Bat_Dummy">
+      <UniqueIdentifier>{a38ee81b-7aee-447c-bd13-a23ed898cc3b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. GameObjects\07. Effect\00. MeshEffect\01. Claw\00. Bat_Claw">
+      <UniqueIdentifier>{5b43c5c5-7746-49d8-a682-8be8e9ac07d7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -663,6 +669,12 @@
     <ClInclude Include="..\Public\ArrowTarget.h">
       <Filter>02. GameObjects\07. Effect\00. MeshEffect\05. Arrow\01. Target</Filter>
     </ClInclude>
+    <ClInclude Include="..\Public\Bat_Claw.h">
+      <Filter>02. GameObjects\07. Effect\00. MeshEffect\01. Claw\00. Bat_Claw</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\Bat_Dummy.h">
+      <Filter>02. GameObjects\05. Monster\Bat\Bat_Dummy</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp">
@@ -958,6 +970,12 @@
     </ClCompile>
     <ClCompile Include="..\Private\ArrowTarget.cpp">
       <Filter>02. GameObjects\07. Effect\00. MeshEffect\05. Arrow\01. Target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\Bat_Claw.cpp">
+      <Filter>02. GameObjects\07. Effect\00. MeshEffect\01. Claw\00. Bat_Claw</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\Bat_Dummy.cpp">
+      <Filter>02. GameObjects\05. Monster\Bat\Bat_Dummy</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

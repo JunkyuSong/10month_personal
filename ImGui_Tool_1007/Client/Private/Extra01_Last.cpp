@@ -259,6 +259,7 @@ void CExtra01_Last::CheckEndAnim()
 		break;
 	case Client::CExtra01_Last::LV1Villager_M_HurtStunStart:
 		m_eCurState = LV1Villager_M_HurtStunLoop;
+		//m_iPass = 11;
 		break;
 	case Client::CExtra01_Last::LV1Villager_M_HurtStunLoop:
 		m_eCurState = LV1Villager_M_HurtStunEnd;
