@@ -119,8 +119,8 @@ HRESULT CAxe::Render()
 	m_pTrailCom->Render();
 
 #ifdef _DEBUG
-	//if (nullptr != m_pColliderCom && m_bColliderOn)
-	//	m_pColliderCom->Render();
+	if (nullptr != m_pColliderCom && m_bColliderOn)
+		m_pColliderCom->Render();
 #endif
 
 	return S_OK;
@@ -182,7 +182,7 @@ HRESULT CAxe::Ready_Components()
 	CCollider::COLLIDERDESC		ColliderDesc;
 	ZeroMemory(&ColliderDesc, sizeof(CCollider::COLLIDERDESC));
 
-	ColliderDesc.vSize = _float3(50.0f, 50.f, 20.f);
+	ColliderDesc.vSize = _float3(500.f, 50.f, 500.f);
 	ColliderDesc.vCenter = _float3(65.f, ColliderDesc.vSize.y * 0.5f - 30.f, 0.f);
 	ColliderDesc.vRotation = _float3(0.f, XMConvertToRadians(0.f), 0.f);
 	if (FAILED(__super::Add_Component(LEVEL_GAMEPLAY, TEXT("Prototype_Component_Collider_OBB"), TEXT("Com_OBB"), (CComponent**)&m_pColliderCom, &ColliderDesc)))

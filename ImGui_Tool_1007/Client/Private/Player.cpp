@@ -710,6 +710,7 @@ void CPlayer::KeyInput_Idle(_float fTimeDelta)
 			m_eCurState = Corvus_PW_Scythe;
 			m_bCollision[COLLIDERTYPE_BODY] = false;
 			m_pSkillParts[SKILL_SCYTHE][0]->Set_CollisionOn(true);
+			m_pStatusCom->Set_Attack(90.f);
 			_bool _bFire(true);
 			m_pSkillParts[SKILL_SCYTHE][0]->Clear(&_bFire);
 		}
@@ -1124,7 +1125,7 @@ void CPlayer::Targeting()
 		list<CGameObject*> Monsters = *m_MonsterLayer->Get_ListFromLayer();
 
 		_vector _vPos = m_pTransformCom->Get_State(CTransform::STATE_POSITION);
-		_float _fClosedDis(15.f);
+		_float _fClosedDis(35.f);
 		for (auto iter : Monsters)
 		{
 			if (static_cast<CMonster*>(iter)->Get_MonsterState() == CMonster::ATTACK_DEAD)
@@ -1132,7 +1133,7 @@ void CPlayer::Targeting()
 
 			_float _fDis = fabs(XMVectorGetX(XMVector3Length(static_cast<CTransform*>(iter->Get_ComponentPtr(TEXT("Com_Transform")))->Get_State(CTransform::STATE_POSITION)
 				- _vPos)));
-			if (_fDis < 15.f)
+			if (_fDis < 35.f)
 			{
 				if (_fClosedDis > _fDis)
 				{
@@ -1163,7 +1164,7 @@ void CPlayer::TargetCheck()
 		Safe_Release(m_pTarget);
 		static_cast<CCamera_Player*>(CCameraMgr::Get_Instance()->Get_Cam(CCameraMgr::CAMERA_PLAYER))->Get_Target(nullptr);
 	}
-	else if (15.f<XMVectorGetX(XMVector3Length(static_cast<CTransform*>(m_pTarget->Get_ComponentPtr(TEXT("Com_Transform")))->Get_State(CTransform::STATE_POSITION) - m_pTransformCom->Get_State(CTransform::STATE_POSITION))))
+	else if (35.f<XMVectorGetX(XMVector3Length(static_cast<CTransform*>(m_pTarget->Get_ComponentPtr(TEXT("Com_Transform")))->Get_State(CTransform::STATE_POSITION) - m_pTransformCom->Get_State(CTransform::STATE_POSITION))))
 	{
 		Safe_Release(m_pTarget);
 		static_cast<CCamera_Player*>(CCameraMgr::Get_Instance()->Get_Cam(CCameraMgr::CAMERA_PLAYER))->Get_Target(nullptr);
@@ -1643,11 +1644,12 @@ void CPlayer::CheckLimit()
 		}
 		break;
 	case Client::CPlayer::Corvus_PW_Axe:
-		if (m_fPlayTime > m_vecLimitTime[Corvus_PW_Axe][5])//다시 무기 스왑 및 타이머 정상화
+		if (m_fPlayTime > m_vecLimitTime[Corvus_PW_Axe][6])//다시 무기 스왑 및 타이머 정상화
 		{
 			m_eWeapon = WEAPON_BASE;
 			m_eCurSkill = SKILL_END;
 			AUTOINSTANCE(CGameInstance, pGame);
+			
 			pGame->Set_TimeSpeed(TEXT("Timer_Main"), DEFAULTTIME);
 			if (!m_bEffect)
 			{
@@ -1655,16 +1657,24 @@ void CPlayer::CheckLimit()
 				m_bEffect = true;
 			}
 		}
-		else if (m_fPlayTime > m_vecLimitTime[Corvus_PW_Axe][4])//다시 무기 스왑 및 타이머 정상화
+		else if (m_fPlayTime > m_vecLimitTime[Corvus_PW_Axe][5])//다시 무기 스왑 및 타이머 정상화
 		{
 			if (m_pSkillParts[SKILL_AXE][0]->Trail_GetOn())
 				m_pSkillParts[SKILL_AXE][0]->TrailOff();
+			
+			
 			AUTOINSTANCE(CGameInstance, pGame);
 			pGame->Set_TimeSpeed(TEXT("Timer_Main"), 2.f);
 		}
-		else if (m_fPlayTime > m_vecLimitTime[Corvus_PW_Axe][3])//모션트레일 off
+		else if (m_fPlayTime > m_vecLimitTime[Corvus_PW_Axe][4])//다시 무기 스왑 및 타이머 정상화
 		{
 			m_pSkillParts[SKILL_AXE][0]->Set_CollisionOn(false);
+			m_pStatusCom->Set_Attack(30.f);
+		}
+		else if (m_fPlayTime > m_vecLimitTime[Corvus_PW_Axe][3])//모션트레일 off
+		{
+			m_pSkillParts[SKILL_AXE][0]->Set_CollisionOn(true);
+			m_pStatusCom->Set_Attack(40.f);
 			m_bMotionPlay = false;
 		}
 		else if (m_fPlayTime > m_vecLimitTime[Corvus_PW_Axe][2])//모션트레일 off
@@ -1676,7 +1686,7 @@ void CPlayer::CheckLimit()
 		else if (m_fPlayTime > m_vecLimitTime[Corvus_PW_Axe][1])//타이머 및 모션트레일
 		{
 			
-			m_pSkillParts[SKILL_AXE][0]->Set_CollisionOn(true);
+			
 			m_bMotionPlay = true;
 			AUTOINSTANCE(CGameInstance, pGame);
 			pGame->Set_TimeSpeed(TEXT("Timer_Main"), 0.5f);
@@ -1720,6 +1730,7 @@ void CPlayer::CheckLimit()
 		{
 			m_pSkillParts[SKILL_DUAL][HAND_LEFT]->Set_CollisionOn(false);
 			m_pSkillParts[SKILL_DUAL][HAND_RIGHT]->Set_CollisionOn(false);
+			m_pStatusCom->Set_Attack(30.f);
 			if (m_pSkillParts[SKILL_DUAL][HAND_LEFT]->Trail_GetOn())
 				m_pSkillParts[SKILL_DUAL][HAND_LEFT]->TrailOff();
 			if (m_pSkillParts[SKILL_DUAL][HAND_RIGHT]->Trail_GetOn())
@@ -1732,6 +1743,7 @@ void CPlayer::CheckLimit()
 			if (!m_pSkillParts[SKILL_DUAL][HAND_RIGHT]->Trail_GetOn())
 				m_pSkillParts[SKILL_DUAL][HAND_RIGHT]->TrailOn();
 			m_pSkillParts[SKILL_DUAL][HAND_LEFT]->Set_CollisionOn(true);
+			m_pStatusCom->Set_Attack(45.f);
 			m_pSkillParts[SKILL_DUAL][HAND_RIGHT]->Set_CollisionOn(true);
 		}
 		break;
@@ -1951,6 +1963,7 @@ void CPlayer::CheckLimit()
 			if (m_pSkillParts[SKILL_LENCE][0]->Trail_GetOn())
 				m_pSkillParts[SKILL_LENCE][0]->TrailOff();
 			m_pSkillParts[SKILL_LENCE][0]->Set_CollisionOn(false);
+			m_pStatusCom->Set_Attack(30.f);
 		}
 		else if (m_vecLimitTime[Corvus_PW_Halberds][3] < m_fPlayTime)
 		{
@@ -1960,6 +1973,7 @@ void CPlayer::CheckLimit()
 		else if (m_vecLimitTime[Corvus_PW_Halberds][2] < m_fPlayTime)
 		{
 			m_pSkillParts[SKILL_LENCE][0]->Set_CollisionOn(true);
+			m_pStatusCom->Set_Attack(75.f);
 			for (auto& _pEffect : m_vecWind)
 				_pEffect->Setting(m_pTransformCom->Get_State(CTransform::STATE_POSITION), false);
 		}
@@ -2004,6 +2018,7 @@ void CPlayer::CheckLimit()
 			if (m_pSkillParts[SKILL_SCYTHE][0]->Trail_GetOn())
 				m_pSkillParts[SKILL_SCYTHE][0]->TrailOff();
 			m_pSkillParts[SKILL_SCYTHE][0]->Set_CollisionOn(false);
+			m_pStatusCom->Set_Attack(30.f);
 			_bool _bFire(false);
 			m_pSkillParts[SKILL_SCYTHE][0]->Clear(&_bFire);
 		}
@@ -2892,6 +2907,7 @@ HRESULT CPlayer::Ready_AnimLimit()
 	m_vecLimitTime[Corvus_PW_Axe].push_back(40.f);
 	m_vecLimitTime[Corvus_PW_Axe].push_back(50.f);
 	m_vecLimitTime[Corvus_PW_Axe].push_back(65.f);
+	m_vecLimitTime[Corvus_PW_Axe].push_back(85.f);
 	m_vecLimitTime[Corvus_PW_Axe].push_back(120.f);
 	m_vecLimitTime[Corvus_PW_Axe].push_back(160.f);
 
