@@ -40,6 +40,7 @@
 #include "CrossTrail.h"
 
 #include "Bow.h"
+#include "Saber.h"
 
 CPlayer::CPlayer(ID3D11Device * pDevice, ID3D11DeviceContext * pContext)
 	: CGameObject(pDevice, pContext)
@@ -130,6 +131,7 @@ HRESULT CPlayer::Initialize(void * pArg)
 	switch (g_eCurLevel)
 	{
 	case Client::LEVEL_GAMEPLAY:
+		m_pTransformCom->Turn_Angle(XMVectorSet(0.f, 1.f, 0.f, 0.f), XMConvertToRadians(-90.f));
 		m_pTransformCom->Set_State(CTransform::STATE_POSITION, XMVectorSet(82.971f, 0.882f, 40.563f, 1.f));
 		break;
 	case Client::LEVEL_STAGE_02_1:
@@ -153,9 +155,13 @@ HRESULT CPlayer::Initialize(void * pArg)
 	POINTLIGHTDESC LIGHT;
 	LIGHT.fRange = 1.5f;
 	LIGHT.vDiffuse = CLIENT_RGB(119.f, 245.f, 200.f);
-	LIGHT.vSpecular = _float4(0.6f, 0.8f, 0.6f, 1.f);
+	LIGHT.vSpecular = _float4(0.01f, 0.03f, 0.01f, 1.f);
 	LIGHT.vAmbient = _float4(0.1f, 0.3f, 0.1f, 1.f);
 	LIGHT.vPosition = _float4(0.f, 0.f, 0.f, 1.f);
+	LIGHT.LightViewMatrix = new _float4x4;
+	XMStoreFloat4x4(LIGHT.LightViewMatrix, XMMatrixIdentity());
+	LIGHT.LightProjMatrix = new _float4x4;
+	XMStoreFloat4x4(LIGHT.LightProjMatrix, XMMatrixTranspose(XMMatrixPerspectiveFovLH(XMConvertToRadians(60.f), 1280.f / 720.f, 0.2f, 300.f)));
 	m_iClawLight = pGameInstance->Add_Light(m_pDevice, m_pContext, g_eCurLevel, CLight_Manager::DYNAMICPOINTLIHGT, LIGHT, -0.3f, 0.1f);
 
 
@@ -642,7 +648,7 @@ void CPlayer::KeyInput_Idle(_float fTimeDelta)
 		{
 			m_pTransformCom->LookAt_ForLandObject(static_cast<CTransform*>(m_pTarget->Get_ComponentPtr(TEXT("Com_Transform")))->Get_State(CTransform::STATE_POSITION));
 			m_eCurState = Corvus_Raven_ClawLong_ChargeFull;
-			m_eWeapon = WEAPON_NONE;		
+			m_eWeapon = WEAPON_NONE;
 		}
 	}
 
@@ -710,7 +716,7 @@ void CPlayer::KeyInput_Idle(_float fTimeDelta)
 			m_eCurState = Corvus_PW_Scythe;
 			m_bCollision[COLLIDERTYPE_BODY] = false;
 			m_pSkillParts[SKILL_SCYTHE][0]->Set_CollisionOn(true);
-			m_pStatusCom->Set_Attack(90.f);
+			m_pStatusCom->Set_Attack(m_fSkillAtts[SKILL_SCYTHE]);
 			_bool _bFire(true);
 			m_pSkillParts[SKILL_SCYTHE][0]->Clear(&_bFire);
 		}
@@ -726,6 +732,57 @@ void CPlayer::KeyInput_Idle(_float fTimeDelta)
 			m_bCollision[COLLIDERTYPE_BODY] = false;
 		}
 	}
+
+	if (pGameInstance->KeyDown(DIK_T))
+	{
+		if (m_eStealSkill != STATE_END)
+		{
+			static_cast<CSkillSlot*>(CUI_Mgr::Get_Instance()->Get_UI(TEXT("PLAYER_SLOT")))->Set_Skill(-1);
+			switch (m_eStealSkill)
+			{
+			case Client::CPlayer::Corvus_PW_Axe:
+				m_eCurState = Corvus_PW_Axe;
+				m_bCollision[COLLIDERTYPE_BODY] = false;
+				break;
+			case Client::CPlayer::DualKnife:
+				m_eCurState = DualKnife;
+				m_eWeapon = WEAPON::WEAPON_SKILL;
+				m_eCurSkill = SKILL_DUAL;
+				m_bCollision[COLLIDERTYPE_BODY] = false;
+				break;
+			case Client::CPlayer::PW_Bow_Start:
+				m_eCurState = PW_Bow_Start;
+				m_eWeapon = WEAPON::WEAPON_SKILL;
+				m_eCurSkill = SKILL_BOW;
+				m_bCollision[COLLIDERTYPE_BODY] = false;
+				static_cast<CBow*>(m_pSkillParts[SKILL_BOW][0])->Set_Stop(false);
+				m_pModelCom->DirectAnim(PW_Bow_Start);
+				static_cast<CAnimModel*>(m_pSkillParts[SKILL_BOW][0]->Get_ComponentPtr(TEXT("Com_Model")))->Set_AnimationIndex(CBow::BOW_START);
+				static_cast<CAnimModel*>(m_pSkillParts[SKILL_BOW][0]->Get_ComponentPtr(TEXT("Com_Model")))->DirectAnim(CBow::BOW_START);
+				break;
+			case Client::CPlayer::Corvus_PW_Halberds:
+				m_eWeapon = WEAPON::WEAPON_SKILL;
+				m_eCurSkill = SKILL_LENCE;
+
+				m_eCurState = Corvus_PW_Halberds;
+				m_bCollision[COLLIDERTYPE_BODY] = false;
+				break;
+			case Client::CPlayer::Corvus_PW_Scythe:
+				m_eWeapon = WEAPON::WEAPON_SKILL;
+				m_eCurSkill = SKILL_SCYTHE;
+
+				m_eCurState = Corvus_PW_Scythe;
+				m_bCollision[COLLIDERTYPE_BODY] = false;
+				m_pSkillParts[SKILL_SCYTHE][0]->Set_CollisionOn(true);
+				m_pStatusCom->Set_Attack(m_fSkillAtts[SKILL_SCYTHE]);
+				_bool _bFire(true);
+				m_pSkillParts[SKILL_SCYTHE][0]->Clear(&_bFire);
+				break;
+			}
+			m_eStealSkill = STATE_END;
+		}
+	}
+
 	if (pGameInstance->KeyDown(DIK_6))
 	{
 		static_cast<CSkillSlot*>(CUI_Mgr::Get_Instance()->Get_UI(TEXT("PLAYER_SLOT")))->Reset();
@@ -1674,7 +1731,7 @@ void CPlayer::CheckLimit()
 		else if (m_fPlayTime > m_vecLimitTime[Corvus_PW_Axe][3])//모션트레일 off
 		{
 			m_pSkillParts[SKILL_AXE][0]->Set_CollisionOn(true);
-			m_pStatusCom->Set_Attack(40.f);
+			m_pStatusCom->Set_Attack(m_fSkillAtts[SKILL_AXE]);
 			m_bMotionPlay = false;
 		}
 		else if (m_fPlayTime > m_vecLimitTime[Corvus_PW_Axe][2])//모션트레일 off
@@ -1743,7 +1800,7 @@ void CPlayer::CheckLimit()
 			if (!m_pSkillParts[SKILL_DUAL][HAND_RIGHT]->Trail_GetOn())
 				m_pSkillParts[SKILL_DUAL][HAND_RIGHT]->TrailOn();
 			m_pSkillParts[SKILL_DUAL][HAND_LEFT]->Set_CollisionOn(true);
-			m_pStatusCom->Set_Attack(45.f);
+			m_pStatusCom->Set_Attack(m_fSkillAtts[SKILL_DUAL]);
 			m_pSkillParts[SKILL_DUAL][HAND_RIGHT]->Set_CollisionOn(true);
 		}
 		break;
@@ -1973,7 +2030,7 @@ void CPlayer::CheckLimit()
 		else if (m_vecLimitTime[Corvus_PW_Halberds][2] < m_fPlayTime)
 		{
 			m_pSkillParts[SKILL_LENCE][0]->Set_CollisionOn(true);
-			m_pStatusCom->Set_Attack(75.f);
+			m_pStatusCom->Set_Attack(m_fSkillAtts[SKILL_LENCE]);
 			for (auto& _pEffect : m_vecWind)
 				_pEffect->Setting(m_pTransformCom->Get_State(CTransform::STATE_POSITION), false);
 		}
@@ -2028,6 +2085,27 @@ void CPlayer::CheckLimit()
 				m_pSkillParts[SKILL_SCYTHE][0]->TrailOn();
 		}
 		break;
+	case Corvus_VSMagician_Execution:
+		if (m_vecLimitTime[Corvus_VSMagician_Execution][1] < m_fPlayTime)
+		{
+			
+		}
+		else if (m_vecLimitTime[Corvus_VSMagician_Execution][0] < m_fPlayTime)
+		{
+			static_cast<CSaber*>(m_pBaseParts[BASE_SABER])->Blood();
+		}
+		break;
+	case Corvus_VSBossBat_Execution01:
+		if (m_vecLimitTime[Corvus_VSBossBat_Execution01][1] < m_fPlayTime)
+		{
+
+		}
+		else if (m_vecLimitTime[Corvus_VSBossBat_Execution01][0] < m_fPlayTime)
+		{
+			static_cast<CSaber*>(m_pBaseParts[BASE_SABER])->Blood();
+		}
+		break;
+
 	}
 
 }
@@ -2243,6 +2321,11 @@ void CPlayer::AfterAnim(_float fTimeDelta)
 
 		break;
 	case Client::CPlayer::Corvus_VSMagician_Execution:
+	{
+		AUTOINSTANCE(CGameInstance, _Instance);
+		_Instance->Set_TimeSpeed(TEXT("Timer_Main"), 1.f);
+	}
+		
 		Cancle();
 		break;
 	case Client::CPlayer::Corvus_VSBossBat_Execution01:
@@ -2563,14 +2646,38 @@ _bool CPlayer::Collision(_float fTimeDelta)
 	CGameObject* _pTarget = m_pColliderCom[COLLIDERTYPE_CLAW]->Get_Target();
 	if (_pTarget && m_eCurState == Corvus_Raven_ClawLong_PlunderAttack2TTT)
 	{
-		if (_pTarget == m_pTarget)
+		if (/*_pTarget == m_pTarget && */m_eStealSkill == STATE_END)
 		{
 
+			AUTOINSTANCE(CGameInstance, _pGame);
+
+			_int RandInt = _pGame->Rand_Int(0, SKILL_END - 1);
+
+			switch (RandInt)
+			{
+			case SKILL_AXE:
+				m_eStealSkill = Corvus_PW_Axe;
+				break;
+			case SKILL_DUAL:
+				m_eStealSkill = DualKnife;
+				break;
+			case SKILL_BOW:
+				m_eStealSkill = PW_Bow_Start;
+				break;
+			case SKILL_SCYTHE:
+				m_eStealSkill = Corvus_PW_Scythe;
+				break;
+			case SKILL_LENCE:
+				m_eStealSkill = Corvus_PW_Halberds;
+				break;
+			}
+
+			static_cast<CSkillSlot*>(CUI_Mgr::Get_Instance()->Get_UI(TEXT("PLAYER_SLOT")))->Set_Skill(RandInt);
 		}
 	}
 
 	_pTarget = m_pColliderCom[COLLIDERTYPE_PARRY]->Get_Target();
-	if (_pTarget)
+	if (_pTarget && _pTarget->Get_ObjType() != TYPE_BULLET)
 	{
 		//MSG_BOX(TEXT("Parry"));
 		static_cast<CMonster*>(_pTarget)->Set_MonsterState(CMonster::ATTACK_STUN);
@@ -2581,8 +2688,13 @@ _bool CPlayer::Collision(_float fTimeDelta)
 		_pTarget = (m_pColliderCom[COLLIDERTYPE_BODY])->Get_Target();
 		if (_pTarget)
 		{
+			if (_pTarget->Get_ObjType() == TYPE_MONSTER)
+			{
+				static_cast<CMonster*>(_pTarget)->Set_Coll_Target(true);
+			}
+
 			//패링 안되고 몸 충돌되었을때
-			static_cast<CMonster*>(_pTarget)->Set_Coll_Target(true);
+			
 			if (m_iHitCount > 2)
 			{
 				m_eCurState = SD_StrongHurt_Start;
@@ -2947,6 +3059,13 @@ HRESULT CPlayer::Ready_AnimLimit()
 	//활
 	m_vecLimitTime[PW_Bow_Start].push_back(50.f); // 슛
 
+	m_vecLimitTime[Corvus_VSMagician_Execution].push_back(45.f);
+	m_vecLimitTime[Corvus_VSMagician_Execution].push_back(65.f);
+
+	m_vecLimitTime[Corvus_VSBossBat_Execution01].push_back(290.f);
+	m_vecLimitTime[Corvus_VSBossBat_Execution01].push_back(330.f);
+
+	
 	return S_OK;
 }
 
@@ -3072,6 +3191,7 @@ HRESULT CPlayer::Ready_PlayerParts_Skill()
 		return E_FAIL;
 	m_pSkillParts[SKILL_AXE].push_back(pGameObject);
 	m_pSkillHands[SKILL_AXE].push_back(HAND_LEFT);
+	m_fSkillAtts[SKILL_AXE] = 40.f;
 
 	pGameObject = static_cast<CWeapon*>(pGameInstance->Clone_GameObject(TEXT("Prototype_GameObject_Weapon_Knife")));
 
@@ -3086,6 +3206,7 @@ HRESULT CPlayer::Ready_PlayerParts_Skill()
 		return E_FAIL;
 	m_pSkillParts[SKILL_DUAL].push_back(pGameObject);
 	m_pSkillHands[SKILL_DUAL].push_back(HAND_LEFT);
+	m_fSkillAtts[SKILL_DUAL] = 45.f;
 
 	pGameObject = static_cast<CWeapon*>(pGameInstance->Clone_GameObject(TEXT("Prototype_GameObject_Weapon_Bow")));
 
@@ -3093,6 +3214,7 @@ HRESULT CPlayer::Ready_PlayerParts_Skill()
 		return E_FAIL;
 	m_pSkillParts[SKILL_BOW].push_back(pGameObject);
 	m_pSkillHands[SKILL_BOW].push_back(HAND_LEFT);
+	
 
 	pGameObject = static_cast<CWeapon*>(pGameInstance->Clone_GameObject(TEXT("Prototype_GameObject_Weapon_Scythe")));
 
@@ -3100,6 +3222,7 @@ HRESULT CPlayer::Ready_PlayerParts_Skill()
 		return E_FAIL;
 	m_pSkillParts[SKILL_SCYTHE].push_back(pGameObject);
 	m_pSkillHands[SKILL_SCYTHE].push_back(HAND_RIGHT);
+	m_fSkillAtts[SKILL_DUAL] = 90.f;
 
 	pGameObject = static_cast<CWeapon*>(pGameInstance->Clone_GameObject(TEXT("Prototype_GameObject_Weapon_Lence")));
 
@@ -3107,7 +3230,8 @@ HRESULT CPlayer::Ready_PlayerParts_Skill()
 		return E_FAIL;
 	m_pSkillParts[SKILL_LENCE].push_back(pGameObject);
 	m_pSkillHands[SKILL_LENCE].push_back(HAND_RIGHT);
-	
+	m_fSkillAtts[SKILL_DUAL] = 75.f;
+
 	return S_OK;
 }
 

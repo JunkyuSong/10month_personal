@@ -30,6 +30,8 @@ public:
 	virtual HRESULT Render();
 
 
+
+
 private:
 	_float3					m_vTargetPos{ 0.f, 0.f, 0.f };
 	_float3					m_vPos[21];

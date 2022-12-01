@@ -88,6 +88,8 @@ private:
 	_bool	m_bAgainAnim = false;
 
 	_bool	m_bDead = false;
+	_float	m_fDissolveTime = 0.f;
+	CTexture*	m_pDissolveTexture = nullptr;
 
 private:
 	STATE					m_eReserveState = STATE_END;

@@ -942,6 +942,10 @@ HRESULT CLoader::Loading_ForLevel_StageLobby()
 		CTexture::Create(m_pDevice, m_pContext, TEXT("../Bin/Resources/Textures/Blood/T_Splatter_73_M.dds")))))//Grass_%d.dds
 		return E_FAIL;
 
+	if (FAILED(pGameInstance->Add_Prototype(LEVEL_STATIC, TEXT("Prototype_Component_Texture_Mask_Blood_Exe"),
+		CTexture::Create(m_pDevice, m_pContext, TEXT("../Bin/Resources/Textures/Blood/T_Splatter_12_M.dds")))))//Grass_%d.dds
+		return E_FAIL;
+
 	if (FAILED(pGameInstance->Add_Prototype(LEVEL_STATIC, TEXT("Prototype_Component_Texture_Diffuse_Blood"),
 		CTexture::Create(m_pDevice, m_pContext, TEXT("../Bin/Resources/Textures/Blood/T_Blood_Fresh_BC.dds")))))//Grass_%d.dds
 		return E_FAIL;

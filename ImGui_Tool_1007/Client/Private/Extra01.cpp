@@ -12,6 +12,7 @@
 #include "CameraMgr.h"
 #include "Camera.h"
 #include "Camera_CutScene_Enter.h"
+#include "Effect_Mgr.h"
 
 CExtra01::CExtra01(ID3D11Device * pDevice, ID3D11DeviceContext * pContext)
 	: CMonster(pDevice, pContext)
@@ -245,6 +246,7 @@ void CExtra01::PlayAnimation(_float fTimeDelta)
 
 void CExtra01::CheckEndAnim()
 {
+	m_iPass = 0;
 	m_fPlaySpeed = 1.f;
 	AUTOINSTANCE(CGameInstance, _pInstance);
 	switch (m_eCurState)
@@ -278,6 +280,7 @@ void CExtra01::CheckEndAnim()
 			_pCutSceneCam->Set_CutSceneNum(1);
 		}
 		m_eMonsterState = ATTACK_DEAD;
+		m_iPass = 4;
 		break;
 	case Client::CExtra01::LV1Villager_M_HurtCounter:
 		m_eCurState = LV1Villager_M_IdleGeneral;
@@ -508,8 +511,6 @@ void CExtra01::CheckLimit()
 		break;
 	case Client::CExtra01::LV1Villager_M_SP_Idle1:
 		break;
-	case Client::CExtra01::LV1Villager_M_VSTakeExecution:
-		break;
 	case Client::CExtra01::LV1Villager_M_WalkF:
 		break;
 	case Client::CExtra01::LV1Villager_M_IdleGeneral:
@@ -545,6 +546,48 @@ void CExtra01::CheckLimit()
 		{
 			m_eMonsterState = CMonster::ATTACK_IDLE;
 			On_Collider(COLLIDERTYPE_BODY, true);
+		}
+		break;
+	case Client::CExtra01::LV1Villager_M_VSTakeExecution:
+		if (m_fPlayTime > m_vecLimitTime[LV1Villager_M_VSTakeExecution][1])
+		{
+
+		}
+		else if (m_fPlayTime > m_vecLimitTime[LV1Villager_M_VSTakeExecution][0])
+		{
+			_matrix	_vPos = m_pBloodPoint->Get_CombinedTransformation()
+				* XMLoadFloat4x4(&m_pModelCom->Get_PivotMatrix())
+				* m_pTransformCom->Get_WorldMatrix();
+
+			XMStoreFloat3(&m_tOption.Center, _vPos.r[3]);
+
+			m_tOption.eType = CEffect_Particle::PARTICLETYPE::TYPE_STRIGHT;
+			m_tOption.fAccSpeed = 0.999f;
+			m_tOption.fSpeed = { 1.f, 3.f };
+			m_tOption.fGravity = 0.f;
+			m_tOption.fLifeTime = 0.f;
+			m_tOption.fRange = _float3(5.f, 5.f, 1.f);
+			m_tOption.iNumParticles = 10;
+			m_tOption.Size = _float2(0.1f, 0.1f);
+			m_tOption.Spread = CEffect_Particle::SPREAD::SPREAD_EDGE;
+			m_tOption.szMaskTag = TEXT("Prototype_Component_Texture_Mask_Blood_Exe");
+			m_tOption.szTextureTag = TEXT("Prototype_Component_Texture_Diffuse_Blood");
+			//_tOption.vColor = CLIENT_RGB(119.f, 245.f, 200.f);
+			//_tOption.vColor = CLIENT_RGB(255.f, 9.f, 4.f);
+			m_tOption.vColor = CLIENT_RGB(175.f, 17.f, 28.f);
+			m_tOption.bPlayerDir = true;
+			m_tOption.fSpead_Angle = _float3(0.f, 20.f, 30.f);
+			XMStoreFloat3(&m_tOption.vStart_Dir, XMVectorSet(0.f, 0.f, 1.f, 0.f));
+			m_tOption.eDiffuseType = CEffect_Particle::DIFFUSE_COLOR;
+			m_tOption.eDirType = CEffect_Particle::DIR_TYPE::DIR_ANGLE;
+			m_tOption.eStartType = CEffect_Particle::START_CENTER;
+			m_tOption.fMaxDistance = { 0.8f, 1.2f };
+			m_tOption.matPlayerAxix = m_pTransformCom->Get_WorldFloat4x4();
+			if (nullptr == CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_PARTICLE, &m_tOption))
+			{
+				MSG_BOX(TEXT("effect_blood"));
+				return;
+			}
 		}
 		break;
 	}
@@ -643,19 +686,19 @@ _bool CExtra01::Collision(_float fTimeDelta)
 		if (TYPE_BULLET == _pTarget->Get_ObjType())
 		{
 			m_pTransformCom->LookAt_ForLandObject(XMLoadFloat4(&CGameInstance::Get_Instance()->Get_PlayerPos()));
+			m_iPass = 5;
 		}
 		else
 		{
 			CPlayer* _pPlayer = static_cast<CPlayer*>(_pTarget);
+			CPlayer::STATE _ePlayerState = *_pPlayer->Get_AnimState();
+			if (_ePlayerState == CPlayer::Corvus_PW_Axe || _ePlayerState == CPlayer::Corvus_PW_Scythe ||
+				_ePlayerState == CPlayer::Corvus_PW_Halberds || _ePlayerState == CPlayer::Raven_ClawNear)
+			{
+				m_iPass = 5;
+			}
 			CTransform* _Trans = static_cast<CTransform*>(_instance->Get_Player()->Get_ComponentPtr(TEXT("Com_Transform")));
 			m_pTransformCom->LookAt_ForLandObject(_Trans->Get_State(CTransform::STATE_POSITION));
-		}
-		
-
-		if (CPlayer::Raven_ClawNear == *static_cast<CPlayer*>(_pTarget)->Get_AnimState())
-		{
-
-			m_iPass = 5;
 		}
 
 		
@@ -891,6 +934,9 @@ void CExtra01::Ready_LimitTime()
 	m_vecLimitTime[LV1Villager_M_Attack01].push_back(165.f);//공격 콜라이더 off
 
 	m_vecLimitTime[LV1Villager_M_Attack03].push_back(60.f);//공격 콜라이더 off
+
+	m_vecLimitTime[LV1Villager_M_VSTakeExecution].push_back(80.f);
+	m_vecLimitTime[LV1Villager_M_VSTakeExecution].push_back(100.f);//공격 콜라이더 off
 }
 
 CExtra01 * CExtra01::Create(ID3D11Device * pDevice, ID3D11DeviceContext * pContext)
@@ -931,6 +977,7 @@ void CExtra01::Free()
 	Safe_Release(m_pParts);
 	Safe_Release(m_pSockets);
 	Safe_Release(m_pDissolveTexture);
+	Safe_Release(m_pBloodPoint);
 }
 
 void CExtra01::Update_Collider()
@@ -976,6 +1023,13 @@ HRESULT CExtra01::Ready_Weapon()
 		return E_FAIL;
 
 	m_pParts = pGameObject;
+
+
+	CHierarchyNode*		pSocket = m_pModelCom->Get_HierarchyNode("Bone_Cloak03_End");
+	if (nullptr == pWeaponSocket)
+		return E_FAIL;
+	m_pBloodPoint = pWeaponSocket;
+	Safe_AddRef(m_pBloodPoint);
 
 	return S_OK;
 }

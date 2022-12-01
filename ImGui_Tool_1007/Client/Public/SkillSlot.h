@@ -48,6 +48,8 @@ public:
 	void  Reset();
 	_bool Check_CoolDown(SKILL _eSkillNum);
 
+	void Set_Skill(_int _iSkill);
+
 private:
 	CShader*				m_pShaderCom = nullptr;
 	
@@ -69,6 +71,8 @@ private:
 private:
 	_float					m_fX, m_fY, m_fSizeX, m_fSizeY;
 	_float4x4				m_ViewMatrix, m_ProjMatrix;
+
+	_int					m_iStealSkill = -1;
 
 private:
 	HRESULT Ready_Components();

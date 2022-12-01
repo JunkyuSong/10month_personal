@@ -93,6 +93,23 @@ _bool CSkillSlot::Check_CoolDown(SKILL _eSkillNum)
 	return false;
 }
 
+void CSkillSlot::Set_Skill(_int _iSkill)
+{
+
+	switch (_iSkill)
+	{
+	case 0:
+		m_iStealSkill = 1;
+		break;
+	case 1:
+		m_iStealSkill = 0;
+		break;
+	default:
+		m_iStealSkill = _iSkill;
+		break;
+	}
+}
+
 HRESULT CSkillSlot::Ready_Components()
 {
 	/* For.Com_Transform */
@@ -242,7 +259,7 @@ HRESULT CSkillSlot::Render_Slot()
 		if (FAILED(m_pVIBufferCom->Render()))
 			return E_FAIL;
 	}
-
+	m_pTransformCom_SkillSlot[SKILL_CLAW]->Set_Scale(XMVectorSet(70.f, 70.f, 1.f, 0.f));
 	m_pShaderCom->Set_RawValue("g_WorldMatrix", &m_pTransformCom_SkillSlot[SKILL_CLAW]->Get_WorldFloat4x4_TP(), sizeof(_float4x4));
 
 	if (FAILED(m_pTextureCom_SkillSlot[SKILLSLOT_MINI]->Set_SRV(m_pShaderCom, "g_DiffuseTexture")))
@@ -252,6 +269,22 @@ HRESULT CSkillSlot::Render_Slot()
 		return E_FAIL;
 	if (FAILED(m_pVIBufferCom->Render()))
 		return E_FAIL;
+
+	if (m_iStealSkill != -1)
+	{
+		m_pTransformCom_SkillSlot[SKILL_CLAW]->Set_Scale(XMVectorSet(130.f, 130.f, 1.f, 0.f));
+		m_pShaderCom->Set_RawValue("g_WorldMatrix", &m_pTransformCom_SkillSlot[SKILL_CLAW]->Get_WorldFloat4x4_TP(), sizeof(_float4x4));
+		m_pShaderCom->Set_RawValue("g_Color", &CLIENT_RGB(119.f, 245.f, 200.f), sizeof(_float4));
+
+		if (FAILED(m_pTextureCom_Skill[m_iStealSkill]->Set_SRV(m_pShaderCom, "g_DiffuseTexture")))
+			return E_FAIL;
+
+		if (FAILED(m_pShaderCom->Begin(6)))
+			return E_FAIL;
+		if (FAILED(m_pVIBufferCom->Render()))
+			return E_FAIL;
+	}
+
 
 
 	return S_OK;

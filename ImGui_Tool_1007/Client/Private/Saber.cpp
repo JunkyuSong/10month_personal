@@ -235,38 +235,87 @@ void CSaber::Hit()
 
 	LightPos = XMVectorSetW((vHigh + vLow) * 0.5f, 1.f);
 
-	CEffect_Particle::OPTION _tOption;
+	
 	//_tOption.Center = _float3(45.f, 2.f, 45.f);
 	_vector	_vPos = m_pTransformCom->Get_State(CTransform::STATE_POSITION);
 	_float4x4	_vWorld = m_pTransformCom->Get_WorldFloat4x4();
 	//_tOption.Center = _float3(_vPos.m128_f32[0], _vPos.m128_f32[1] + 1.f, _vPos.m128_f32[2]);
 
-	XMStoreFloat3(&_tOption.Center, LightPos);
+	XMStoreFloat3(&m_tOption.Center, LightPos);
 
-	_tOption.eType = CEffect_Particle::PARTICLETYPE::TYPE_STRIGHT;
-	_tOption.fAccSpeed = 0.99f;
-	_tOption.fSpeed = { 1.5f, 3.3f };
-	_tOption.fGravity = 0.f;
-	_tOption.fLifeTime = 0.f;
-	_tOption.fRange = _float3(5.f, 5.f, 1.f);
-	_tOption.iNumParticles = 50;
-	_tOption.Size = _float2(0.2f, 0.2f);
-	_tOption.Spread = CEffect_Particle::SPREAD::SPREAD_EDGE;
-	_tOption.szMaskTag = TEXT("Prototype_Component_Texture_Mask_Blood");
-	_tOption.szTextureTag = TEXT("Prototype_Component_Texture_Diffuse_Blood");
+	m_tOption.eType = CEffect_Particle::PARTICLETYPE::TYPE_STRIGHT;
+	m_tOption.fAccSpeed = 0.99f;
+	m_tOption.fSpeed = { 1.5f, 3.3f };
+	m_tOption.fGravity = 0.f;
+	m_tOption.fLifeTime = 0.f;
+	m_tOption.fRange = _float3(5.f, 5.f, 1.f);
+	m_tOption.iNumParticles = 50;
+	m_tOption.Size = _float2(0.2f, 0.2f);
+	m_tOption.Spread = CEffect_Particle::SPREAD::SPREAD_EDGE;
+	m_tOption.szMaskTag = TEXT("Prototype_Component_Texture_Mask_Blood");
+	m_tOption.szTextureTag = TEXT("Prototype_Component_Texture_Diffuse_Blood");
 	//_tOption.vColor = CLIENT_RGB(119.f, 245.f, 200.f);
 	//_tOption.vColor = CLIENT_RGB(255.f, 9.f, 4.f);
-	_tOption.vColor = CLIENT_RGB(255.f, 0.f, 0.f);
-	_tOption.bPlayerDir = true;
-	_tOption.fSpead_Angle = _float3(0.f, 25.f, 25.f);
-	_tOption.vStart_Dir = _float3(1.f, 0.f, 0.f);
-	_tOption.eDiffuseType = CEffect_Particle::DIFFUSE_COLOR;
-	_tOption.eDirType = CEffect_Particle::DIR_TYPE::DIR_ANGLE;
-	_tOption.eStartType = CEffect_Particle::START_CENTER;
-	_tOption.fMaxDistance = { 0.4f, 1.2f };
-	XMStoreFloat4x4(&_tOption.matPlayerAxix, m_pTransformCom->Get_WorldMatrix() * m_pParentTransformCom->Get_WorldMatrix());
+	m_tOption.vColor = CLIENT_RGB(175.f, 17.f, 28.f);
+	m_tOption.bPlayerDir = true;
+	m_tOption.fSpead_Angle = _float3(0.f, 25.f, 25.f);
+	m_tOption.vStart_Dir = _float3(1.f, 0.f, 0.f);
+	m_tOption.eDiffuseType = CEffect_Particle::DIFFUSE_COLOR;
+	m_tOption.eDirType = CEffect_Particle::DIR_TYPE::DIR_ANGLE;
+	m_tOption.eStartType = CEffect_Particle::START_CENTER;
+	m_tOption.fMaxDistance = { 0.4f, 1.2f };
+	XMStoreFloat4x4(&m_tOption.matPlayerAxix, m_pTransformCom->Get_WorldMatrix() * m_pParentTransformCom->Get_WorldMatrix());
 
-	if (nullptr == CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_PARTICLE, &_tOption))
+	if (nullptr == CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_PARTICLE, &m_tOption))
+	{
+		MSG_BOX(TEXT("effect_blood"));
+		return;
+	}
+}
+
+void CSaber::Blood()
+{
+	_vector LightPos, vHigh, vLow;
+	vHigh = XMVectorSet(100.0f, 0.f, 0.f, 1.f);
+	vLow = XMVectorSet(-5.f, 0.f, 0.f, 1.f);
+
+
+	vHigh = XMVector3TransformCoord(vHigh, m_pTransformCom->Get_WorldMatrix() * m_pParentTransformCom->Get_WorldMatrix());
+	vLow = XMVector3TransformCoord(vLow, m_pTransformCom->Get_WorldMatrix() * m_pParentTransformCom->Get_WorldMatrix());
+
+	LightPos = XMVectorSetW((vHigh + vLow) * 0.5f, 1.f);
+
+
+	//_tOption.Center = _float3(45.f, 2.f, 45.f);
+	_vector	_vPos = m_pTransformCom->Get_State(CTransform::STATE_POSITION);
+	_float4x4	_vWorld = m_pTransformCom->Get_WorldFloat4x4();
+	//_tOption.Center = _float3(_vPos.m128_f32[0], _vPos.m128_f32[1] + 1.f, _vPos.m128_f32[2]);
+
+	XMStoreFloat3(&m_tOption.Center, LightPos);
+
+	m_tOption.eType = CEffect_Particle::PARTICLETYPE::TYPE_STRIGHT;
+	m_tOption.fAccSpeed = 0.999f;
+	m_tOption.fSpeed = { 1.f, 3.f };
+	m_tOption.fGravity = 0.f;
+	m_tOption.fLifeTime = 0.f;
+	m_tOption.fRange = _float3(5.f, 5.f, 1.f);
+	m_tOption.iNumParticles = 50;
+	m_tOption.Size = _float2(0.15f, 0.15f);
+	m_tOption.Spread = CEffect_Particle::SPREAD::SPREAD_EDGE;
+	m_tOption.szMaskTag = TEXT("Prototype_Component_Texture_Mask_Blood_Exe");
+	m_tOption.szTextureTag = TEXT("Prototype_Component_Texture_Diffuse_Blood");
+	//_tOption.vColor = CLIENT_RGB(119.f, 245.f, 200.f);
+	//_tOption.vColor = CLIENT_RGB(255.f, 9.f, 4.f);
+	m_tOption.vColor = CLIENT_RGB(175.f, 17.f, 28.f);
+	m_tOption.bPlayerDir = false;
+	m_tOption.fSpead_Angle = _float3(0.f, 35.f, 35.f);
+	XMStoreFloat3(&m_tOption.vStart_Dir, XMVector3Normalize(vHigh - vLow));
+	m_tOption.eDiffuseType = CEffect_Particle::DIFFUSE_COLOR;
+	m_tOption.eDirType = CEffect_Particle::DIR_TYPE::DIR_ANGLE;
+	m_tOption.eStartType = CEffect_Particle::START_CENTER;
+	m_tOption.fMaxDistance = { 0.8f, 1.2f };
+	
+	if (nullptr == CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_PARTICLE, &m_tOption))
 	{
 		MSG_BOX(TEXT("effect_blood"));
 		return;

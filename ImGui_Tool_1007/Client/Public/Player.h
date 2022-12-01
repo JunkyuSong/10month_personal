@@ -169,11 +169,13 @@ private:
 
 	PARTS								m_pSkillParts[SKILL_END];
 	vector<_uint>						m_pSkillHands[SKILL_END];
+	_float								m_fSkillAtts[SKILL_END];
 
 	WEAPON								m_eWeapon = WEAPON_BASE;
 	SKILL								m_eCurSkill = SKILL_END;
 
 	vector<class CWind*>				m_vecWind;
+	STATE								m_eStealSkill = STATE_END;
 
 private:
 	CShader*				m_pShaderCom = nullptr;

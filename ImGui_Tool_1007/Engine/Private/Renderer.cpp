@@ -506,6 +506,8 @@ HRESULT CRenderer::Render_NonLight()
 
 	/*if (FAILED(m_pTarget_Manager->AddBinding_RTV(m_pContext, TEXT("Target_Depth"), 1)))
 		return E_FAIL;*/
+	if (FAILED(m_pTarget_Manager->Begin_MRT(m_pContext, TEXT("MRT_AfterHDR"))))
+		return E_FAIL;
 	
 	for (auto& pRenderObject : m_RenderObjects[RENDER_NONLIGHT])
 	{
@@ -516,8 +518,8 @@ HRESULT CRenderer::Render_NonLight()
 	}
 	m_RenderObjects[RENDER_NONLIGHT].clear();
 
-	//if (FAILED(m_pTarget_Manager->End_MRT(m_pContext)))
-	//	return E_FAIL;
+	if (FAILED(m_pTarget_Manager->End_MRT(m_pContext)))
+		return E_FAIL;
 
 	return S_OK;
 }

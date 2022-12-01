@@ -95,6 +95,9 @@ private:
 
 	_bool	m_bDead = false;
 
+	_float	m_fDissolveTime = 0.f;
+	CTexture*	m_pDissolveTexture = nullptr;
+
 private:
 	STATE					m_eReserveState = STATE_END;
 	STATE					m_eCurState = LV1Villager_M_IdleGeneral;

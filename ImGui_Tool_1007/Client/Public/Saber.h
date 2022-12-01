@@ -2,7 +2,7 @@
 
 #include "Client_Defines.h"
 #include "Weapon.h"
-
+#include "Effect_Particle.h"
 
 BEGIN(Client)
 
@@ -29,8 +29,10 @@ public:
 
 	void		Light_On();
 	void		Hit();
+	void		Blood();
 
 private:
+	CEffect_Particle::OPTION m_tOption;
 	_uint	m_iLight = 0;
 
 	_bool	m_bHitTime = false;

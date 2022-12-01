@@ -114,6 +114,7 @@ void CBoss_Bat::Tick(_float fTimeDelta)
 	else
 	{
 		On_Collider(COLLIDERTYPE_BODY, true);
+		m_iPass = 0;
 	}
 	
 
@@ -154,7 +155,7 @@ HRESULT CBoss_Bat::Render()
 			return E_FAIL;
 
 
-		if (FAILED(m_pModelCom->Render(m_pShaderCom, 0, i)))
+		if (FAILED(m_pModelCom->Render(m_pShaderCom, m_iPass, i)))
 			return E_FAIL;
 	}
 
@@ -212,7 +213,7 @@ void CBoss_Bat::PlayAnimation(_float fTimeDelta)
 void CBoss_Bat::CheckEndAnim()
 {
 	m_fPlaySpeed = 1.f;
-
+	m_iPass = 0;
 	switch (m_eCurState)
 	{
 	case Client::CBoss_Bat::BossBat_AttackL_01_1:
@@ -671,10 +672,25 @@ _bool CBoss_Bat::Collision(_float fTimeDelta)
 
 	if ((_pTarget = m_pColliderCom[COLLIDERTYPE_BODY]->Get_Target()) && (CPlayer::ParryL != *static_cast<CPlayer*>(_pTarget)->Get_AnimState()))
 	{
-	
+		if (TYPE_BULLET != _pTarget->Get_ObjType())
+		{
+			CPlayer* _pPlayer = static_cast<CPlayer*>(_pTarget);
+			CPlayer::STATE _ePlayerState = *_pPlayer->Get_AnimState();
+			if (_ePlayerState == CPlayer::Corvus_PW_Axe || _ePlayerState == CPlayer::Corvus_PW_Scythe ||
+				_ePlayerState == CPlayer::Corvus_PW_Halberds || _ePlayerState == CPlayer::Raven_ClawNear)
+			{
+				m_iPass = 5;
+			}
+		}
+		else
+		{
+			m_iPass = 5;
+		}
+
+
+
 		m_pStatusCom->Damage(static_cast<CStatus*>(_pTarget->Get_ComponentPtr(TEXT("Com_Status")))->Get_Attack());
 		m_fHitCurTime = 0.f;
-		//return true;
 	}
 	return false;
 }
@@ -882,7 +898,7 @@ HRESULT CBoss_Bat::Ready_Components()
 
 	/* For.Com_Status */
 	CStatus::STATUS _tStatus;
-	_tStatus.fMaxHp = 500.f;
+	_tStatus.fMaxHp = 10.f;
 	_tStatus.fAttack = 20.f;
 	_tStatus.fHp = _tStatus.fMaxHp;
 	if (FAILED(__super::Add_Component(LEVEL_STATIC, TEXT("Prototype_Component_Status"), TEXT("Com_Status"), (CComponent**)&m_pStatusCom, &_tStatus)))

@@ -3,6 +3,8 @@
 #include "Client_Defines.h"
 #include "Monster.h"
 
+#include "Effect_Particle.h"
+
 BEGIN(Engine)
 class CHierarchyNode;
 class CTexture;
@@ -87,7 +89,7 @@ private:
 	_bool InRange();
 	void Pattern();
 
-
+	
 
 	_bool	m_bAgainAnim = false;
 
@@ -138,6 +140,8 @@ private:
 	class CWeapon*				m_pParts = nullptr;
 	class CHierarchyNode*		m_pSockets = nullptr;
 
+	class CHierarchyNode*		m_pBloodPoint = nullptr;
+	CEffect_Particle::OPTION	m_tOption;
 
 
 public:

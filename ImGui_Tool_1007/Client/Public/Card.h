@@ -3,7 +3,6 @@
 #include "Client_Defines.h"
 #include "Weapon.h"
 
-
 BEGIN(Client)
 
 class CCard final : public CWeapon
@@ -21,9 +20,9 @@ public:
 	virtual void LateTick(_float fTimeDelta);
 	virtual HRESULT Render();
 
-
-
-
+private:
+	_bool	m_bDead = false;
+	class CStatus* m_pStatusCom = nullptr;
 
 private:
 	HRESULT Ready_Components();

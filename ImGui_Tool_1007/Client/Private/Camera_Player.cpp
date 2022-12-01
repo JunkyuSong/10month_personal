@@ -56,6 +56,7 @@ HRESULT CCamera_Player::Initialize(void * pArg)
 	switch (g_eCurLevel)
 	{
 	case Client::LEVEL_GAMEPLAY:
+		m_pTransformCom->Turn_Angle(XMVectorSet(0.f, 1.f, 0.f, 0.f), XMConvertToRadians(-90.f));
 		if (FAILED(__super::Add_Component(LEVEL_GAMEPLAY, TEXT("Prototype_Component_Navigation_GamePlay"), TEXT("Com_Navigation"), (CComponent**)&m_pNaviCom, &NaviDesc)))
 			return E_FAIL;
 		break;

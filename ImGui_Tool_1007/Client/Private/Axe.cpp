@@ -78,7 +78,7 @@ HRESULT CAxe::Render()
 
 	if (pTarget)
 	{
-		Hit();
+		//Hit();
 		CCameraMgr::Get_Instance()->Get_Cam(CCameraMgr::CAMERA_PLAYER)->ZoomIn(50.f, 80.f, 0.3f);
 	}
 

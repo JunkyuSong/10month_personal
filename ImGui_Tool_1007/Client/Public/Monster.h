@@ -42,6 +42,7 @@ public:
 	MONSTERTYPE	Get_Type() { return m_eMonsterType; }
 
 	void					LookPlayerSlow(_float _fRatio);
+	void					Set_Pass(_uint _iPass) { m_iPass = _iPass; }
 
 protected:
 	CShader*				m_pShaderCom = nullptr;

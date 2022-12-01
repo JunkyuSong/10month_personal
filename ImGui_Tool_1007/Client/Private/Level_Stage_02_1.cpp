@@ -80,7 +80,7 @@ HRESULT CLevel_Stage_02_1::Ready_Lights()
 	LightDesc.vSpecular = _float4(0.1f, 0.1f, 0.1f, 1.f);
 	LightDesc.LightViewMatrix = new _float4x4;
 	LightDesc.LightProjMatrix = new _float4x4;
-	XMStoreFloat4x4(LightDesc.LightProjMatrix, XMMatrixTranspose(XMMatrixPerspectiveFovLH(XMConvertToRadians(60.f), 1280.f / 720.f, 0.2f, 300.f)));
+	XMStoreFloat4x4(LightDesc.LightProjMatrix, XMMatrixTranspose(XMMatrixPerspectiveFovLH(XMConvertToRadians(60.f), 8000.f / 4500.f, 0.2f, 300.f)));
 
 	if (FAILED(pGameInstance->Add_Light(m_pDevice, m_pContext, LEVEL_STAGE_02_1, LightDesc)))
 		return E_FAIL;
@@ -233,7 +233,7 @@ HRESULT CLevel_Stage_02_1::Ready_Layer_UI(const _tchar * pLayerTag)
 	CUI_Mgr::Get_Instance()->Add_UI(TEXT("Targeting"), _pGameObj);
 
 
-	if (FAILED(pGameInstance->Add_GameObjectToLayer(TEXT("Prototype_GameObject_UI_SkillSlot"), LEVEL_STAGE_LOBBY, pLayerTag, nullptr, &_pGameObj)))
+	if (FAILED(pGameInstance->Add_GameObjectToLayer(TEXT("Prototype_GameObject_UI_SkillSlot"), LEVEL_STAGE_02_1, pLayerTag, nullptr, &_pGameObj)))
 		return E_FAIL;
 	CUI_Mgr::Get_Instance()->Add_UI(TEXT("PLAYER_SLOT"), _pGameObj);
 

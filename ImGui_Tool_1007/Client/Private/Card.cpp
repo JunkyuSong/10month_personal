@@ -5,6 +5,8 @@
 #include "Magician.h"
 #include "Trail_Obj.h"
 
+#include "Status.h"
+
 CCard::CCard(ID3D11Device * pDevice, ID3D11DeviceContext * pContext)
 	: CWeapon(pDevice, pContext)
 {
@@ -49,7 +51,7 @@ HRESULT CCard::Initialize(void * pArg)
 		m_pTransformCom->Turn_Angle(m_pTransformCom->Get_State(CTransform::STATE_LOOK), XMConvertToRadians(90.0f));
 		m_pTransformCom->Turn_Angle(m_pTransformCom->Get_State(CTransform::STATE_UP), XMConvertToRadians(90.0f));
 	}
-	
+	m_eTypeObj = TYPE_BULLET;
 	
 	return S_OK;
 }
@@ -57,16 +59,17 @@ HRESULT CCard::Initialize(void * pArg)
 void CCard::Tick(_float fTimeDelta)
 {
 	//m_pTrailCom->Tick(fTimeDelta, m_pTransformCom->Get_WorldMatrix());
-
+	if (m_bDead)
+		return;
 	m_pTransformCom->Go_Up(fTimeDelta*20.f);
 	m_pColliderCom->Update(m_pTransformCom->Get_WorldMatrix());
-	CCollisionMgr::Get_Instance()->Add_CollisoinList(CCollisionMgr::TYPE_PLAYER_WEAPON, m_pColliderCom, this);
+	CCollisionMgr::Get_Instance()->Add_CollisoinList(CCollisionMgr::TYPE_MONSTER_BULLET, m_pColliderCom, this);
 	//일정 거리 이상 가면 ㅃㅇ
 	
 	
-	if (5.f < fabs(XMVectorGetX(XMVector3Length(XMLoadFloat3(&m_vOriginPos) - m_pTransformCom->Get_State(CTransform::STATE_POSITION)))))
+	if (35.f < fabs(XMVectorGetX(XMVector3Length(XMLoadFloat3(&m_vOriginPos) - m_pTransformCom->Get_State(CTransform::STATE_POSITION)))))
 	{
-		
+		m_bDead = true;
 	}
 }
 
@@ -77,9 +80,16 @@ void CCard::Tick(_float fTimeDelta, CGameObject * _pUser)
 
 void CCard::LateTick(_float fTimeDelta)
 {
+	if (m_bDead)
+		return;
 	if (nullptr == m_pRendererCom)
 		return;
 	//충돌처리
+	if (m_pColliderCom->Get_Target())
+	{
+		m_bDead = true;
+	}
+		
 	m_pRendererCom->Add_RenderGroup(CRenderer::RENDER_NONALPHABLEND, this);
 }
 
@@ -154,17 +164,14 @@ HRESULT CCard::Ready_Components()
 	if (FAILED(__super::Add_Component(LEVEL_GAMEPLAY, TEXT("Prototype_Component_Model_Weapon_Card"), TEXT("Com_Model"), (CComponent**)&m_pModelCom)))
 		return E_FAIL;
 
-	/* For.Com_Trail */
-	//CTrail::TRAILINFO _tInfo;
-	//
-	//_tInfo._Color = _float4(100.f / 255.f, 216.f / 255.f, 201.f / 255.f, 1.f);
-	//_tInfo._HighAndLow.vHigh = _float3(100.0f, 0.f, 0.f);
-	//_tInfo._HighAndLow.vLow = _float3(90.0f, 0.f, 0.f);
-	////_tInfo._HighAndLow.vLow = _float3(-5.f, 0.f, 0.f);
-	/*AUTOINSTANCE(CGameInstance, _pInstance);
-	m_pTrailCom = static_cast<CTrail_Obj*>(_pInstance->Clone_GameObject(TEXT("Prototype_GameObject_Trail"), &_tInfo));
-	if (m_pTrailCom == nullptr)
-		return E_FAIL;*/
+
+	/* For.Com_Status */
+	CStatus::STATUS _tStatus;
+	_tStatus.fMaxHp = 0.f;
+	_tStatus.fAttack = 10.f;
+	_tStatus.fHp = _tStatus.fMaxHp;
+	if (FAILED(__super::Add_Component(LEVEL_STATIC, TEXT("Prototype_Component_Status"), TEXT("Com_Status"), (CComponent**)&m_pStatusCom, &_tStatus)))
+		return E_FAIL;
 
 	/* For.Com_OBB */
 	CCollider::COLLIDERDESC		ColliderDesc;
@@ -209,4 +216,5 @@ CGameObject * CCard::Clone(void * pArg)
 void CCard::Free()
 {
 	__super::Free();
+	Safe_Release(m_pStatusCom);
 }

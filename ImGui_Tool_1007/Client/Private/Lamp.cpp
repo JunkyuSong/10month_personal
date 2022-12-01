@@ -51,7 +51,7 @@ HRESULT CLamp::Initialize(void * pArg)
 	LightDesc.fRange = 15.f;
 	LightDesc.vDiffuse = CLIENT_RGB(255.f, 127.f, 0.f);
 	LightDesc.vAmbient = _float4(0.3f, 0.3f, 0.3f, 1.f);
-	LightDesc.vSpecular = _float4(0.1f, 0.1f, 0.1f, 1.f);
+	LightDesc.vSpecular = _float4(0.01f, 0.03f, 0.01f, 1.f);
 	LightDesc.LightViewMatrix = new _float4x4;
 
 	_vector _vLook, _vRight, _vUp;

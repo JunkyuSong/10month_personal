@@ -193,7 +193,7 @@ HRESULT CMagician::Render()
 				return E_FAIL;
 
 
-			if (FAILED(m_pModelCom->Render(m_pShaderCom, 0, i)))
+			if (FAILED(m_pModelCom->Render(m_pShaderCom, m_iPass, i)))
 				return E_FAIL;
 		}
 	}
@@ -228,6 +228,7 @@ void CMagician::PlayAnimation( _float fTimeDelta)
 void CMagician::CheckEndAnim()
 {
 	m_fPlaySpeed = 1.f;
+	m_iPass = 0;
 	switch (m_eCurState)
 	{
 	case Client::CMagician::Magician_Idle:
@@ -1161,6 +1162,7 @@ _bool CMagician::Collision(_float fTimeDelta)
 		if (_pTarget->Get_ObjType() != TYPE_BULLET)
 		{
 			CPlayer* _pPlayer = static_cast<CPlayer*>(_pTarget);
+			CPlayer::STATE _ePlayerState = *_pPlayer->Get_AnimState();
 			if (m_eMonsterState == ATTACK_PARRY)
 			{
 
@@ -1173,6 +1175,18 @@ _bool CMagician::Collision(_float fTimeDelta)
 				Cancle();
 				return true;
 			}
+			
+			else if (_ePlayerState == CPlayer::Corvus_PW_Axe || _ePlayerState == CPlayer::Corvus_PW_Scythe ||
+				_ePlayerState == CPlayer::Corvus_PW_Halberds || _ePlayerState == CPlayer::Raven_ClawNear)
+			{
+				m_iPass = 5;
+			}
+		}
+
+		else
+		{
+			m_pTransformCom->LookAt_ForLandObject(XMLoadFloat4(&CGameInstance::Get_Instance()->Get_PlayerPos()));
+			m_iPass = 5;
 		}
 
 		

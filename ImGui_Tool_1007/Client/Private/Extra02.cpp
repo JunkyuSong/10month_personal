@@ -91,6 +91,7 @@ void CExtra02::Tick(_float fTimeDelta)
 {
 	if (m_bDead)
 	{
+		m_fDissolveTime += fTimeDelta * 0.3f;
 		m_eMonsterState = ATTACK_DEAD;
 		return;
 	}
@@ -164,6 +165,15 @@ HRESULT CExtra02::Render()
 
 	SetUp_ShaderResources();
 
+	if (m_bDead)
+	{
+		if (FAILED(m_pShaderCom->Set_RawValue("g_fTime", &m_fDissolveTime, sizeof(_float))))
+			return E_FAIL;
+		if (FAILED(m_pDissolveTexture->Set_SRV(m_pShaderCom, "g_DissolveTexture")))
+			return E_FAIL;
+		m_iPass = 4;
+	}
+
 	_uint		iNumMeshes = m_pModelCom->Get_NumMesh();//메쉬 갯수를 알고 메쉬 갯수만큼 렌더를 할 것임. 여기서!
 
 	for (_uint i = 0; i < iNumMeshes; ++i)
@@ -174,7 +184,7 @@ HRESULT CExtra02::Render()
 			return E_FAIL;
 
 
-		if (FAILED(m_pModelCom->Render(m_pShaderCom, 0, i)))
+		if (FAILED(m_pModelCom->Render(m_pShaderCom, m_iPass, i)))
 			return E_FAIL;
 	}
 
@@ -246,7 +256,7 @@ void CExtra02::CheckEndAnim()
 {
 	m_fPlaySpeed = 1.f;
 	AUTOINSTANCE(CGameInstance, _pInstance);
-	
+	m_iPass = 0;
 	switch (m_eCurState)
 	{
 	case Client::CExtra02::LV1Villager_M_Attack01:
@@ -666,10 +676,17 @@ _bool CExtra02::Collision(_float fTimeDelta)
 		if (TYPE_BULLET == _pTarget->Get_ObjType())
 		{
 			m_pTransformCom->LookAt_ForLandObject(XMLoadFloat4(&CGameInstance::Get_Instance()->Get_PlayerPos()));
+			m_iPass = 5;
 		}
 		else
 		{
 			CPlayer* _pPlayer = static_cast<CPlayer*>(_pTarget);
+			CPlayer::STATE _ePlayerState = *_pPlayer->Get_AnimState();
+			if (_ePlayerState == CPlayer::Corvus_PW_Axe || _ePlayerState == CPlayer::Corvus_PW_Scythe ||
+				_ePlayerState == CPlayer::Corvus_PW_Halberds || _ePlayerState == CPlayer::Raven_ClawNear)
+			{
+				m_iPass = 5;
+			}
 			CTransform* _Trans = static_cast<CTransform*>(_instance->Get_Player()->Get_ComponentPtr(TEXT("Com_Transform")));
 			m_pTransformCom->LookAt_ForLandObject(_Trans->Get_State(CTransform::STATE_POSITION));
 		}
@@ -845,6 +862,9 @@ HRESULT CExtra02::Ready_Components()
 	if (FAILED(__super::Add_Component(LEVEL_STATIC, TEXT("Prototype_Component_Transform"), TEXT("Com_Transform"), (CComponent**)&m_pTransformCom, &_Desc)))
 		return E_FAIL;
 
+	if (FAILED(__super::Add_Component(LEVEL_STATIC, TEXT("Prototype_Component_Texture_Dissolve"), TEXT("Com_Noise"), (CComponent**)&m_pDissolveTexture)))
+		return E_FAIL;
+
 	/* For.Com_Renderer */
 	if (FAILED(__super::Add_Component(LEVEL_STATIC, TEXT("Prototype_Component_Renderer"), TEXT("Com_Renderer"), (CComponent**)&m_pRendererCom)))
 		return E_FAIL;
@@ -974,6 +994,7 @@ void CExtra02::Free()
 	}
 	Safe_Release(m_pParts);
 	Safe_Release(m_pSockets);
+	Safe_Release(m_pDissolveTexture);
 }
 
 void CExtra02::Update_Collider()

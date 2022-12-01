@@ -139,7 +139,7 @@ HRESULT CPuppet::Render()
 			return E_FAIL;
 
 
-		if (FAILED(m_pModelCom->Render(m_pShaderCom, 0, i)))
+		if (FAILED(m_pModelCom->Render(m_pShaderCom, 10, i)))
 			return E_FAIL;
 	}
 
@@ -453,7 +453,7 @@ void CPuppet::RenderGroup()
 	if (nullptr == m_pRendererCom)
 		return;
 	
-	m_pRendererCom->Add_RenderGroup(CRenderer::RENDER_NONALPHABLEND, this);
+	m_pRendererCom->Add_RenderGroup(CRenderer::RENDER_NONLIGHT, this);
 }
 
 _bool CPuppet::Collision(_float fTimeDelta)
