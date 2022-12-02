@@ -38,8 +38,10 @@ HRESULT CLevel_GamePlay::Initialize()
 
 	if (FAILED(Ready_Layer_UI(TEXT("Layer_UI"))))
 		return E_FAIL;
-
+	
 	CCameraMgr::Get_Instance()->Initialize();
+
+
 
 	return S_OK;
 }

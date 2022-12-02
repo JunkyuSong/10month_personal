@@ -30,11 +30,15 @@ HRESULT CCrossTrail::Initialize(void * pArg)
 
 	if (pArg)
 	{
-		m_vColor = *(_float4*)pArg;
+		CROSS_DESC _tDesc = *(CROSS_DESC*)pArg;
+		m_vColor = _tDesc.vRGBA;
+		m_fWidth = _tDesc.fWidth;
+		m_bLook = _tDesc.bLook;
 	}
 	else
 	{
 		m_vColor = CLIENT_RGB(255.f, 255.f, 255.f);
+		m_fWidth = 0.005f;
 	}
 
 	m_bDead = false;
@@ -89,17 +93,15 @@ HRESULT CCrossTrail::Render()
 	AUTOINSTANCE(CGameInstance, pGameInstance);
 		
 	//m_pShaderCom->Set_RawValue("g_WorldMatrix", &XMMatrixTranspose(XMLoadFloat4x4(&m_matLook)), sizeof(_float4x4));
-	_float		_fWidth = 0.005f;
-
 	
-	m_pShaderCom->Set_RawValue("g_Width", &_fWidth, sizeof(_float));
+	m_pShaderCom->Set_RawValue("g_Width", &m_fWidth, sizeof(_float));
 
 	if (FAILED(m_pShaderCom->Set_RawValue("g_ViewMatrix", &pGameInstance->Get_TransformFloat4x4_TP(CPipeLine::D3DTS_VIEW), sizeof(_float4x4))))
 		return E_FAIL;
 	if (FAILED(m_pShaderCom->Set_RawValue("g_ProjMatrix", &pGameInstance->Get_TransformFloat4x4_TP(CPipeLine::D3DTS_PROJ), sizeof(_float4x4))))
 		return E_FAIL;
-
-
+	if (m_bLook)
+		m_pTransCom->Set_WorldMatrix(XMMatrixIdentity());
 	for (_uint i = 0; i < m_vPos.size() - 2; ++i)
 	{
 		_float3 vPos[2];
@@ -107,17 +109,27 @@ HRESULT CCrossTrail::Render()
 		vPos[1] = m_vPos[i+1];
 		_float3 _vRight, _vUp, _vLook;
 		m_pTransCom->Set_State(CTransform::STATE_POSITION, XMLoadFloat3(&vPos[0]));
-		if (i != 0)
+		if (m_bLook)
 		{
-			m_pTransCom->LookAt_ForLandObject(XMLoadFloat3(&(vPos[1])));
+			m_pTransCom->LookAt(XMLoadFloat3(&(vPos[1])));
 			XMStoreFloat3(&_vRight, m_pTransCom->Get_State(CTransform::STATE_RIGHT));
 			XMStoreFloat3(&_vUp, m_pTransCom->Get_State(CTransform::STATE_UP));
-		}
+		}			
 		else
 		{
-			XMStoreFloat3(&_vRight, XMVectorSet(1.f,0.f,0.f,0.f));
-			XMStoreFloat3(&_vUp, XMVectorSet(0.f, 1.f, 0.f, 0.f));
+			if (i != 0)
+			{			
+				m_pTransCom->LookAt_ForLandObject(XMLoadFloat3(&(vPos[1])));
+				XMStoreFloat3(&_vRight, m_pTransCom->Get_State(CTransform::STATE_RIGHT));
+				XMStoreFloat3(&_vUp, m_pTransCom->Get_State(CTransform::STATE_UP));
+			}
+			else
+			{
+				XMStoreFloat3(&_vRight, XMVectorSet(1.f, 0.f, 0.f, 0.f));
+				XMStoreFloat3(&_vUp, XMVectorSet(0.f, 1.f, 0.f, 0.f));
+			}
 		}
+	
 
 		m_pShaderCom->Set_RawValue("g_Right", &(_vRight), sizeof(_float3));
 		m_pShaderCom->Set_RawValue("g_Up", &(_vUp), sizeof(_float3));

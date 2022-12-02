@@ -86,7 +86,7 @@ private:
 	enum DIRECT { DIR_F, DIR_B, DIR_R, DIR_L, DIR_FR, DIR_BR, DIR_FL, DIR_BL, DIR_END };
 	enum COLLIDERTYPE { COLLIDERTYPE_CLAW, COLLIDERTYPE_BODY, COLLIDERTYPE_PARRY, COLLIDERTYPE_PUSH, COLLILDERTYPE_END };
 	enum ATTACKLIMIT { ATTACKLIMIT_MOVE, ATTACKLIMIT_CHANGE, ATTACKLIMIT_TRAILON, ATTACKLIMIT_TRAILEND, ATTACKLIMIT_COLLIDERON, ATTACKLIMIT_COLLIDEREND, ATTACKLIMIT_END };
-	enum PARTICLEEFFECT { PARTICLE_STEAL, PARTICLE_CLAW, PARTICLE_END };
+	enum PARTICLEEFFECT { PARTICLE_STEAL, PARTICLE_CLAW, PARTICLE_BLOOD, PARTICLE_END };
 public:
 	struct OBJ_DESC
 	{
@@ -296,14 +296,8 @@ private:
 private:
 	CNavigation*			m_pNavigationCom = nullptr;
 	class CUI_Targeting*	m_pUI_Targeting = nullptr;
-	_uint					m_iStage = 0;
+	static _uint			m_iStage;
 	bool					m_bCutScene[LEVEL_END] = { NULL };
-
-public:
-	void Set_Stage(_uint _iStage) {
-		m_iStage = _iStage;
-	}
-
 
 private:
 	void CutScene();

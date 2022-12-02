@@ -38,6 +38,7 @@ HRESULT CExtra01::Initialize_Prototype()
 
 HRESULT CExtra01::Initialize(void * pArg)
 {
+	m_eTypeObj = TYPE_MONSTER;
 	m_eMonsterType = MONSTER_EXTRA01;
 
 	if (FAILED(Ready_Components()))
@@ -87,6 +88,7 @@ HRESULT CExtra01::Initialize(void * pArg)
 
 void CExtra01::Tick(_float fTimeDelta)
 {
+	
 	if (m_bDead)
 	{
 		m_fDissolveTime += fTimeDelta * 0.3f;
@@ -460,6 +462,8 @@ void CExtra01::CheckLimit()
 	case Client::CExtra01::LV1Villager_M_Attack01:
 		if (m_vecLimitTime[LV1Villager_M_Attack01][2] < m_fPlayTime)
 		{
+			if (m_pParts->Trail_GetOn())
+				m_pParts->TrailOff();
 			m_pParts->Set_CollisionOn(false);
 		}
 		else if (m_vecLimitTime[LV1Villager_M_Attack01][1] < m_fPlayTime)
@@ -478,6 +482,8 @@ void CExtra01::CheckLimit()
 		}
 		else if (m_vecLimitTime[LV1Villager_M_Attack01][0] < m_fPlayTime)
 		{
+			if (!m_pParts->Trail_GetOn())
+				m_pParts->TrailOn();
 			m_pParts->Set_CollisionOn(true);
 			LookPlayerSlow(0.5f);
 
@@ -489,6 +495,8 @@ void CExtra01::CheckLimit()
 	case Client::CExtra01::LV1Villager_M_Attack03:
 		if (m_vecLimitTime[LV1Villager_M_Attack03][0] < m_fPlayTime)
 		{
+			if (m_pParts->Trail_GetOn())
+				m_pParts->TrailOff();
 			m_pParts->Set_CollisionOn(false);
 		}
 		else

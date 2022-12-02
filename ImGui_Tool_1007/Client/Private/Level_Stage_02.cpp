@@ -42,7 +42,7 @@ HRESULT CLevel_Stage_02::Initialize()
 		return E_FAIL;
 
 	CCameraMgr::Get_Instance()->Initialize();
-
+	Loading(LEVEL_STAGE_02);
 	return S_OK;
 }
 
@@ -69,7 +69,8 @@ HRESULT CLevel_Stage_02::Ready_Lights()
 	DIRLIGHTDESC			LightDesc;
 	ZeroMemory(&LightDesc, sizeof(DIRLIGHTDESC));
 
-	LightDesc.vDirection = _float4(1.f, -1.f, 1.f, 0.f);
+	LightDesc.vPosition = _float4(49.f, 46.2f, 93.f, 1.f);
+	XMStoreFloat4(&LightDesc.vDirection, XMVector3Normalize( XMVectorSet(45.f, 0.f, 45.f, 1.f) - XMLoadFloat4(&LightDesc.vPosition)));
 	LightDesc.vDiffuse = _float4(1.f, 1.f, 1.f, 1.f);
 	LightDesc.vAmbient = _float4(0.3f, 0.3f, 0.3f, 1.1f);
 	LightDesc.vSpecular = _float4(0.f, 0.f, 0.f, 1.f);

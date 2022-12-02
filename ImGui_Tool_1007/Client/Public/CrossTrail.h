@@ -15,7 +15,13 @@ BEGIN(Client)
 class CCrossTrail :
 	public CEffect
 {
-
+public:
+	struct CROSS_DESC
+	{
+		_float4 vRGBA;
+		_float	fWidth = 0.005f;
+		_bool	bLook = false;
+	};
 public:
 	CCrossTrail(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 	CCrossTrail(const CCrossTrail& rhs);
@@ -38,6 +44,7 @@ private:
 	_float					m_fCurTime = 0.f;
 
 	_float4					m_vColor;
+	_float					m_fWidth;
 
 	vector<_float3>			m_vPos;
 	vector<_float3>			m_vRight;
@@ -48,6 +55,8 @@ private:
 	CTransform*				m_pTransCom = nullptr; // 쓸모없는데?
 	CRenderer*				m_pRendererCom = nullptr;
 	CVIBuffer_Point*		m_pVIBufferCom = nullptr;
+
+	_bool					m_bLook = false;
 
 private:
 	HRESULT Ready_Components();

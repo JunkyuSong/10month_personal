@@ -42,6 +42,8 @@
 #include "Bow.h"
 #include "Saber.h"
 
+_uint			CPlayer::m_iStage = 0;
+
 CPlayer::CPlayer(ID3D11Device * pDevice, ID3D11DeviceContext * pContext)
 	: CGameObject(pDevice, pContext)
 {
@@ -1294,7 +1296,11 @@ void CPlayer::CutScene()
 			LightDesc.vDiffuse = CLIENT_RGB(255.f, 255.f, 255.f);
 			LightDesc.vAmbient = _float4(0.5f, 0.5f, 0.5f, 1.0f);
 			LightDesc.vSpecular = _float4(0.f, 0.f, 0.f, 1.f);
+			LightDesc.LightProjMatrix = new _float4x4;
+			LightDesc.LightViewMatrix = new _float4x4;
 
+			XMStoreFloat4x4(LightDesc.LightViewMatrix, XMMatrixIdentity());
+			XMStoreFloat4x4(LightDesc.LightProjMatrix, XMMatrixIdentity());
 
 			m_iLightIndex = pGameInstance->Add_Light(m_pDevice, m_pContext, LEVEL_STAGE_LAST, CLight_Manager::STATICPOINTLIHGT, LightDesc);
 
@@ -1527,6 +1533,7 @@ void CPlayer::CheckEndAnim()
 			_pCamera->Get_Cam(CCameraMgr::CAMERA_PLAYER)->ZoomOff(100.f);
 		}
 		m_eCurState = STATE_IDLE;
+		
 		break;
 	case Client::CPlayer::Corvus_VSLV2Villager_M_Execution:
 		if (m_bOneChange)
@@ -1535,6 +1542,7 @@ void CPlayer::CheckEndAnim()
 			_pInstance->Set_TimeSpeed(TEXT("Timer_Main"), DEFAULTTIME);
 			_pCamera->Get_Cam(CCameraMgr::CAMERA_PLAYER)->ZoomOff(100.f);
 			m_bOneChange = false;
+			//m_eWeapon = WEAPON_BASE;
 		}
 		m_eCurState = STATE_IDLE;
 		break;
@@ -1542,10 +1550,12 @@ void CPlayer::CheckEndAnim()
 		_pCamera->Change_Camera(CCameraMgr::CAMERA_PLAYER);
 		_pInstance->Set_TimeSpeed(TEXT("Timer_Main"), DEFAULTTIME);
 		m_eCurState = STATE_IDLE;
+		m_iStage = 1;
 		break;
 	case Client::CPlayer::Corvus_VSBossBat_Execution01:
 		_pCamera->Change_Camera(CCameraMgr::CAMERA_PLAYER);
 		m_eCurState = STATE_IDLE;
+		m_iStage = 2;
 		break;
 	case Client::CPlayer::STATE_APPROACH2:
 		Safe_Release(m_pNavigationCom);
@@ -1984,13 +1994,18 @@ void CPlayer::CheckLimit()
 			AUTOINSTANCE(CGameInstance, _pInstance);
 			if (!m_bEffect)
 			{
-				m_pClawTrail[NAIL_ONE] = static_cast<CCrossTrail*>(CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_CROSSTRAIL, &(CLIENT_RGB(255.f, 255.f, 0.f))));
+				CCrossTrail::CROSS_DESC _tInfo;
+				_tInfo.vRGBA = CLIENT_RGB(255.f, 255.f, 0.f);
+				m_pClawTrail[NAIL_ONE] = static_cast<CCrossTrail*>(CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_CROSSTRAIL, &(_tInfo)));
 				Safe_AddRef(m_pClawTrail[NAIL_ONE]);
-				m_pClawTrail[NAIL_TWO] = static_cast<CCrossTrail*>(CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_CROSSTRAIL, &(CLIENT_RGB(119.f, 255.f, 130.f))));
+				_tInfo.vRGBA = CLIENT_RGB(119.f, 255.f, 130.f);
+				m_pClawTrail[NAIL_TWO] = static_cast<CCrossTrail*>(CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_CROSSTRAIL, &(_tInfo)));
 				Safe_AddRef(m_pClawTrail[NAIL_TWO]);
-				m_pClawTrail[NAIL_THREE] = static_cast<CCrossTrail*>(CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_CROSSTRAIL, &(CLIENT_RGB(66.f, 236.f, 62.f))));
+				_tInfo.vRGBA = CLIENT_RGB(66.f, 236.f, 62.f);
+				m_pClawTrail[NAIL_THREE] = static_cast<CCrossTrail*>(CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_CROSSTRAIL, &(_tInfo)));
 				Safe_AddRef(m_pClawTrail[NAIL_THREE]);
-				m_pClawTrail[NAIL_FOUR] = static_cast<CCrossTrail*>(CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_CROSSTRAIL, &(CLIENT_RGB(119.f, 255.f, 10.f))));
+				_tInfo.vRGBA = CLIENT_RGB(119.f, 255.f, 10.f);
+				m_pClawTrail[NAIL_FOUR] = static_cast<CCrossTrail*>(CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_CROSSTRAIL, &(_tInfo)));
 				Safe_AddRef(m_pClawTrail[NAIL_FOUR]);
 
 				
@@ -2108,7 +2123,29 @@ void CPlayer::CheckLimit()
 			static_cast<CSaber*>(m_pBaseParts[BASE_SABER])->Blood();
 		}
 		break;
+	case Corvus_VSLV2Villager_M_Execution:
+		if (m_vecLimitTime[Corvus_VSLV2Villager_M_Execution][2] < m_fPlayTime)
+		{
 
+		}
+		else if (m_vecLimitTime[Corvus_VSLV2Villager_M_Execution][1] < m_fPlayTime)
+		{/*
+			m_vPreClaw = m_vCurClaw;
+			XMStoreFloat3(&m_vCurClaw, (m_pHands[HAND_RIGHT]->Get_CombinedTransformation()*XMLoadFloat4x4(&m_pModelCom->Get_PivotMatrix())*m_pTransformCom->Get_WorldMatrix()).r[3]);
+			m_Particles[PARTICLE_BLOOD].Center = m_vCurClaw; */
+			//static_cast<CSaber*>(m_pBaseParts[BASE_SABER])->Blood();
+			/*XMStoreFloat3(&m_Particles[PARTICLE_BLOOD].vStart_Dir, XMVector3Normalize(XMLoadFloat3(&m_vPreClaw) - XMLoadFloat3(&m_vCurClaw)));
+			if (nullptr == CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_PARTICLE, &m_Particles[PARTICLE_BLOOD]))
+			{
+				MSG_BOX(TEXT("fail effect"));
+			}*/
+		}
+		else if (m_vecLimitTime[Corvus_VSLV2Villager_M_Execution][0] < m_fPlayTime)
+		{
+			//m_vPreClaw = m_vCurClaw;
+			//XMStoreFloat3(&m_vCurClaw, (m_pHands[HAND_RIGHT]->Get_CombinedTransformation()*XMLoadFloat4x4(&m_pModelCom->Get_PivotMatrix())*m_pTransformCom->Get_WorldMatrix()).r[3]);
+		}
+		break;		
 	}
 
 }
@@ -2319,14 +2356,14 @@ void CPlayer::AfterAnim(_float fTimeDelta)
 		{
 			Change_Hand();
 			m_bOneChange = true;
-
+			//m_eWeapon = WEAPON_NONE;
 		}
 
 		break;
 	case Client::CPlayer::Corvus_VSMagician_Execution:
 	{
 		AUTOINSTANCE(CGameInstance, _Instance);
-		_Instance->Set_TimeSpeed(TEXT("Timer_Main"), 1.f);
+		_Instance->Set_TimeSpeed(TEXT("Timer_Main"), 0.75f);
 	}
 		
 		Cancle();
@@ -2420,14 +2457,21 @@ void CPlayer::AfterAnim(_float fTimeDelta)
 	{
 		//거리가 어느정도 되었을때 이걸로 바뀐다.
 		// 끝까지 안닿으면 뭐 쩔수없궁 히히
-		_vector _vTargetPos = static_cast<CTransform*>(m_pTarget->Get_ComponentPtr(TEXT("Com_Transform")))->Get_State(CTransform::STATE_POSITION);
-		_vector _vPlayerPos = m_pTransformCom->Get_State(CTransform::STATE_POSITION);
-		if (XMVector3Length( _vTargetPos - _vPlayerPos).m128_f32[0] < 1.f)
+		if (m_pTarget == nullptr)
 		{
-			m_eReserveState = Corvus_Raven_ClawLong_PlunderAttack2TTT;
-			m_bCollision[COLLIDERTYPE_CLAW] = true;
-			m_bCollision[COLLIDERTYPE_BODY] = false;
+			m_eCurState = STATE_IDLE;
 		}
+		{
+			_vector _vTargetPos = static_cast<CTransform*>(m_pTarget->Get_ComponentPtr(TEXT("Com_Transform")))->Get_State(CTransform::STATE_POSITION);
+			_vector _vPlayerPos = m_pTransformCom->Get_State(CTransform::STATE_POSITION);
+			if (XMVector3Length(_vTargetPos - _vPlayerPos).m128_f32[0] < 1.f)
+			{
+				m_eReserveState = Corvus_Raven_ClawLong_PlunderAttack2TTT;
+				m_bCollision[COLLIDERTYPE_CLAW] = true;
+				m_bCollision[COLLIDERTYPE_BODY] = false;
+			}
+		}
+		
 	}
 		
 		break;
@@ -2836,6 +2880,32 @@ HRESULT CPlayer::Ready_ParticleDesc()
 	_tOption.eDissapear = CEffect_Particle::DISSAPEAR_ALPHA;
 
 	m_Particles[PARTICLE_STEAL] = _tOption;
+
+
+	_tOption.eType = CEffect_Particle::PARTICLETYPE::TYPE_STRIGHT;
+	_tOption.fAccSpeed = 0.999f;
+	_tOption.fSpeed = { 1.f, 3.f };
+	_tOption.fGravity = 0.f;
+	_tOption.fLifeTime = 0.f;
+	_tOption.fRange = _float3(5.f, 5.f, 1.f);
+	_tOption.iNumParticles = 5;
+	_tOption.Size = _float2(0.15f, 0.15f);
+	_tOption.Spread = CEffect_Particle::SPREAD::SPREAD_EDGE;
+	_tOption.szMaskTag = TEXT("Prototype_Component_Texture_Mask_Blood_Exe");
+	_tOption.szTextureTag = TEXT("Prototype_Component_Texture_Diffuse_Blood");
+	//_tOption.vColor = CLIENT_RGB(119.f, 245.f, 200.f);
+	//_tOption.vColor = CLIENT_RGB(255.f, 9.f, 4.f);
+	_tOption.vColor = CLIENT_RGB(175.f, 17.f, 28.f);
+	_tOption.bPlayerDir = false;
+	_tOption.fSpead_Angle = _float3(0.f, 10.f, 10.f);
+	XMStoreFloat3(&_tOption.vStart_Dir, XMVector3Normalize(XMLoadFloat3(& m_vCurClaw) - XMLoadFloat3(&m_vPreClaw)));
+	_tOption.eDiffuseType = CEffect_Particle::DIFFUSE_COLOR;
+	_tOption.eDirType = CEffect_Particle::DIR_TYPE::DIR_ANGLE;
+	_tOption.eStartType = CEffect_Particle::START_CENTER;
+	_tOption.fMaxDistance = { 0.8f, 1.2f };
+
+	m_Particles[PARTICLE_BLOOD] = _tOption;
+
 	
 	return S_OK;
 }
@@ -3067,6 +3137,10 @@ HRESULT CPlayer::Ready_AnimLimit()
 
 	m_vecLimitTime[Corvus_VSBossBat_Execution01].push_back(290.f);
 	m_vecLimitTime[Corvus_VSBossBat_Execution01].push_back(330.f);
+
+	m_vecLimitTime[Corvus_VSLV2Villager_M_Execution].push_back(0.f);
+	m_vecLimitTime[Corvus_VSLV2Villager_M_Execution].push_back(30.f);
+	m_vecLimitTime[Corvus_VSLV2Villager_M_Execution].push_back(50.f);
 
 	
 	return S_OK;

@@ -22,8 +22,8 @@ HRESULT CBackGround::Initialize(void * pArg)
 	if (FAILED(Ready_Components()))
 		return E_FAIL;
 
-	m_fSizeX = g_iWinSizeX * 0.2f;
-	m_fSizeY = g_iWinSizeY * 0.2f;
+	m_fSizeX = g_iWinSizeX;
+	m_fSizeY = g_iWinSizeY;
 
 	m_fX = m_fSizeX * 0.5f;
 	m_fY = m_fSizeY * 0.5f;
@@ -64,7 +64,7 @@ HRESULT CBackGround::Render()
 	if (FAILED(m_pTextureCom->Set_SRV(m_pShaderCom, "g_DiffuseTexture")))
 		return E_FAIL;
 
-	if (FAILED(m_pShaderCom->Begin(2)))
+	if (FAILED(m_pShaderCom->Begin(0)))
 		return E_FAIL;
 
 	if (FAILED(m_pVIBufferCom->Render()))

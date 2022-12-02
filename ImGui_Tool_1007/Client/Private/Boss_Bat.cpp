@@ -19,6 +19,8 @@
 #include "Bat_Dummy.h"
 #include "MotionTrail.h"
 
+#include "CrossTrail.h"
+
 CBoss_Bat::CBoss_Bat(ID3D11Device * pDevice, ID3D11DeviceContext * pContext)
 	: CMonster(pDevice, pContext)
 {
@@ -48,6 +50,20 @@ HRESULT CBoss_Bat::Initialize(void * pArg)
 
 	Ready_LimitTime();
 
+	m_pEyes[0] = m_pModelCom->Get_HierarchyNode("ear_l");
+	m_pEyes[1] = m_pModelCom->Get_HierarchyNode("ear_r");
+
+	for (_uint i = 0; i < 2; ++i)
+	{
+		Safe_AddRef(m_pEyes[i]);
+	}
+
+	CCrossTrail::CROSS_DESC _tInfo;
+	_tInfo.vRGBA = CLIENT_RGB(255.f, 0.f, 0.f);
+	_tInfo.fWidth = 0.05f;
+	_tInfo.bLook = true;
+	m_pTrail[0] = static_cast<CCrossTrail*>(CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_CROSSTRAIL, &(_tInfo)));
+	m_pTrail[1] = static_cast<CCrossTrail*>(CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_CROSSTRAIL, &(_tInfo)));
 
 	m_pTransformCom->Rotation(XMVectorSet(0.f, 1.f, 0.f, 0.f), XMConvertToRadians(180.f));
 	m_pTransformCom->Set_State(CTransform::STATE_POSITION, XMVectorSet(30.672f, 0.f, 50.622f, 1.f));
@@ -97,11 +113,26 @@ void CBoss_Bat::Tick(_float fTimeDelta)
 				*XMLoadFloat4x4(&m_pModelCom->Get_PivotMatrix())*m_pTransformCom->Get_WorldMatrix()).r[3];
 		_TargetTrans->Set_State(CTransform::STATE_POSITION, XMVectorSetW(_vAnimPoint, 1.f));
 		_TargetTrans->LookAt_ForLandObject(m_pTransformCom->Get_State(CTransform::STATE_POSITION));
-		_pPlayer->Set_Stage(2);
 		m_eMonsterState = ATTACK_DEAD;
 	}
 	
-	
+	_matrix WeaponMatrix = /*m_pSockets[PART_CANE]->Get_OffSetMatrix()**/
+		m_pEyes[0]->Get_CombinedTransformation()
+		* XMLoadFloat4x4(&m_pModelCom->Get_PivotMatrix())
+		* m_pTransformCom->Get_WorldMatrix();
+	_float3 _vPos;
+	WeaponMatrix.r[3] += XMVector3Normalize(WeaponMatrix.r[1]) * 0.5f;
+	XMStoreFloat3(&_vPos, WeaponMatrix.r[3]);
+	m_pTrail[0]->Add_Point(_vPos);
+
+
+	WeaponMatrix = /*m_pSockets[PART_CANE]->Get_OffSetMatrix()**/
+		m_pEyes[1]->Get_CombinedTransformation()
+		* XMLoadFloat4x4(&m_pModelCom->Get_PivotMatrix())
+		* m_pTransformCom->Get_WorldMatrix();
+	WeaponMatrix.r[3] += XMVector3Normalize(WeaponMatrix.r[1]) * 0.5f;
+	XMStoreFloat3(&_vPos, WeaponMatrix.r[3]);
+	m_pTrail[1]->Add_Point(_vPos);
 
 	if (m_pModelCom != nullptr)
 	{
@@ -180,13 +211,65 @@ HRESULT CBoss_Bat::Render()
 			return E_FAIL;
 	}
 
-	for (_uint i = 0; i < COLLILDERTYPE_END; ++i)
+	/*for (_uint i = 0; i < COLLILDERTYPE_END; ++i)
 	{
 		if (nullptr != m_pColliderCom[i])
 			m_pColliderCom[i]->Render();
+	}*/
+
+
+	return S_OK;
+}
+
+HRESULT CBoss_Bat::Render_Shadow()
+{
+	if (nullptr == m_pModelCom ||
+		nullptr == m_pShaderCom)
+		return E_FAIL;
+	AUTOINSTANCE(CGameInstance, _pInstance);
+	_uint		iNumMeshes;//메쉬 갯수를 알고 메쉬 갯수만큼 렌더를 할 것임. 여기서!
+
+	SetUp_ShaderResources();
+
+	iNumMeshes = m_pModelCom->Get_NumMesh();//메쉬 갯수를 알고 메쉬 갯수만큼 렌더를 할 것임. 여기서!
+
+	for (_uint i = 0; i < iNumMeshes; ++i)
+	{
+		if (FAILED(m_pModelCom->SetUp_OnShader(m_pShaderCom, m_pModelCom->Get_MaterialIndex(i), aiTextureType_DIFFUSE, "g_DiffuseTexture")))
+			return E_FAIL;
+
+		if (FAILED(m_pModelCom->SetUp_OnShader(m_pShaderCom, m_pModelCom->Get_MaterialIndex(i), aiTextureType_NORMALS, "g_NormalTexture")))
+			return E_FAIL;
+
+		_float4 _vCamPosition = _pInstance->Get_CamPosition();
+
+		m_pShaderCom->Set_RawValue("g_vCamPosition", &_vCamPosition, sizeof(_float4));
+
+		DIRLIGHTDESC* _DirLightDesc = _pInstance->Get_DirLightDesc(g_eCurLevel, 0);
+
+
+		if (_pInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_FIRST, CLight_Manager::LIGHT_VIEW) != nullptr)
+		{
+			if (FAILED(m_pShaderCom->Set_RawValue("g_ViewMatrix", _pInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_FIRST, CLight_Manager::LIGHT_VIEW), sizeof(_float4x4))))
+				return E_FAIL;
+			if (FAILED(m_pShaderCom->Set_RawValue("g_ProjMatrix", _pInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_FIRST, CLight_Manager::LIGHT_PROJ), sizeof(_float4x4))))
+				return E_FAIL;
+			if (FAILED(m_pModelCom->Render(m_pShaderCom, 8, i)))
+				return E_FAIL;
+
+			if (_pInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_SECOND, CLight_Manager::LIGHT_VIEW) != nullptr)
+			{
+				if (FAILED(m_pShaderCom->Set_RawValue("g_ViewMatrix2", _pInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_SECOND, CLight_Manager::LIGHT_VIEW), sizeof(_float4x4))))
+					return E_FAIL;
+				if (FAILED(m_pShaderCom->Set_RawValue("g_ProjMatrix2", _pInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_SECOND, CLight_Manager::LIGHT_PROJ), sizeof(_float4x4))))
+					return E_FAIL;
+				if (FAILED(m_pModelCom->Render(m_pShaderCom, 9, i)))
+					return E_FAIL;
+			}
+
+
+		}
 	}
-
-
 	return S_OK;
 }
 
@@ -786,6 +869,7 @@ void CBoss_Bat::RenderGroup()
 		return;
 
 	m_pRendererCom->Add_RenderGroup(CRenderer::RENDER_NONALPHABLEND, this);
+	m_pRendererCom->Add_RenderGroup(CRenderer::RENDER_SHADOW, this);
 
 	for (auto& _motion : m_listMotion)
 	{
@@ -1006,6 +1090,8 @@ void CBoss_Bat::CurrentRot()
 
 HRESULT CBoss_Bat::Ready_Components()
 {
+	AUTOINSTANCE(CGameInstance, _pInstance);
+
 	/* For.Com_Transform */
 	CTransform::TRANSFORMDESC	_Desc;
 	_Desc.fRotationPerSec = XMConvertToRadians(90.f);
@@ -1028,7 +1114,7 @@ HRESULT CBoss_Bat::Ready_Components()
 
 	/* For.Com_Status */
 	CStatus::STATUS _tStatus;
-	_tStatus.fMaxHp = 1000.f;
+	_tStatus.fMaxHp = 100.f;
 	_tStatus.fAttack = 20.f;
 	_tStatus.fHp = _tStatus.fMaxHp;
 	if (FAILED(__super::Add_Component(LEVEL_STATIC, TEXT("Prototype_Component_Status"), TEXT("Com_Status"), (CComponent**)&m_pStatusCom, &_tStatus)))
@@ -1084,7 +1170,6 @@ HRESULT CBoss_Bat::Ready_Components()
 
 	if (FAILED(__super::Add_Component(LEVEL_STAGE_02, TEXT("Prototype_Component_Navigation_Stage_02"), TEXT("Com_Navigation"), (CComponent**)&m_pNavigationCom, &NaviDesc)))
 		return E_FAIL;
-
 
 	return S_OK;
 }
@@ -1228,6 +1313,11 @@ void CBoss_Bat::Free()
 	{
 		if (_Collider)
 			Safe_Release(_Collider);
+	}
+
+	for (_uint i = 0; i < 2; ++i)
+	{
+		Safe_Release(m_pEyes[i]);
 	}
 }
 

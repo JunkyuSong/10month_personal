@@ -3,6 +3,13 @@
 #include "Client_Defines.h"
 #include "Level_Client.h"
 
+BEGIN(Engine)
+class CTexture;
+class CShader;
+class CVIBuffer_Rect;
+class CTransform;
+END
+
 
 BEGIN(Client)
 
@@ -22,9 +29,14 @@ private:
 	HRESULT	Ready_Component();
 
 private:
-	LEVEL				m_eNextLevel = LEVEL_END;
-	class CLoader*		m_pLoader = nullptr;
-
+	LEVEL					m_eNextLevel = LEVEL_END;
+	class CLoader*			m_pLoader = nullptr;
+	_bool					m_OneReady = false;
+	CTexture*				m_pTextureCom = nullptr;
+	CShader*				m_pShaderCom = nullptr;
+	CVIBuffer_Rect*			m_pVIBufferCom = nullptr;
+	CTransform*				m_pTransformCom = nullptr;
+	_float4x4				m_ViewMatrix, m_ProjMatrix;
 
 public:
 	static CLevel_Loading* Create(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, LEVEL eNextLevel);

@@ -45,6 +45,8 @@ HRESULT CLevel_Stage_Last::Initialize()
 	AUTOINSTANCE(CGameInstance, _pInstance);
 	_pInstance->Set_TimeSpeed(TEXT("Timer_Main"), DEFAULTTIME);
 	
+	Loading(LEVEL_STAGE_LAST);
+
 	return S_OK;
 }
 

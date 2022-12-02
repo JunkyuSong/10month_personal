@@ -45,6 +45,7 @@ void CMonsterAxe::Tick(_float fTimeDelta)
 
 void CMonsterAxe::Tick(_float fTimeDelta, CGameObject * _pUser)
 {
+	m_pTrailCom->Tick(fTimeDelta, m_pTransformCom->Get_WorldMatrix() * m_pParentTransformCom->Get_WorldMatrix());
 	if (m_bColliderOn)
 	{
 		m_pColliderCom->Update(m_pTransformCom->Get_WorldMatrix() * m_pParentTransformCom->Get_WorldMatrix());
@@ -123,7 +124,17 @@ HRESULT CMonsterAxe::Ready_Components()
 	if (FAILED(__super::Add_Component(LEVEL_STATIC, TEXT("Prototype_Component_Transform"), TEXT("Com_ParentTransform"), (CComponent**)&m_pParentTransformCom)))
 		return E_FAIL;
 
-
+	/* For.Com_Trail */
+	CTrail::TRAILINFO _tInfo;
+	//_tInfo._Color = CLIENT_RGB(255, 155, 155);
+	_tInfo._Color = CLIENT_RGB(255, 255, 255);
+	_tInfo._HighAndLow.vHigh = _float3(115.0f, 0.f, 0.f);
+	_tInfo._HighAndLow.vLow = _float3(15.f, 0.f, 0.f);
+	_tInfo._eOption = CTrail::TRAILOPTION_DEFAULT;
+	AUTOINSTANCE(CGameInstance, _pInstance);
+	m_pTrailCom = static_cast<CTrail_Obj*>(_pInstance->Clone_GameObject(TEXT("Prototype_GameObject_Trail"), &_tInfo));
+	if (m_pTrailCom == nullptr)
+		return E_FAIL;
 
 	/* For.Com_Renderer */
 	if (FAILED(__super::Add_Component(LEVEL_STATIC, TEXT("Prototype_Component_Renderer"), TEXT("Com_Renderer"), (CComponent**)&m_pRendererCom)))

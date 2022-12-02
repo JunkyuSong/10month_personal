@@ -414,7 +414,8 @@ PS_OUT_TRAIL PS_MAIN_TRAIL(PS_IN In)
 
 	Out.vDiffuse = g_DiffuseTexture.Sample(DefaultSampler, In.vTexUV);
 
-	Out.vDiffuse *= vector(0.5f, 0.2f, 0.8f, g_fAlpha);
+	//Out.vDiffuse *= vector(0.5f, 0.2f, 0.8f, g_fAlpha);
+	Out.vDiffuse *= vector(0.466f, 0.96f, 0.784f, g_fAlpha);
 
 	//Out.vDepth = vector(In.vProjPos.z / In.vProjPos.w, In.vProjPos.w, 0.0f, 0.0f);
 

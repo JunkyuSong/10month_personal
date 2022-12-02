@@ -38,7 +38,7 @@ HRESULT CExtra02_Last::Initialize_Prototype()
 HRESULT CExtra02_Last::Initialize(void * pArg)
 {
 	AUTOINSTANCE(CGameInstance, _pInstance);
-
+	m_eTypeObj = TYPE_MONSTER;
 	m_eMonsterType = MONSTER_EXTRA02_LAST;
 
 	if (FAILED(Ready_Components()))
@@ -141,8 +141,8 @@ void CExtra02_Last::LateTick(_float fTimeDelta)
 {
 	if (m_bDead)
 	{
-		
-		RenderGroup();
+		if (m_fDissolveTime < 1.5f)
+			RenderGroup();
 		return;
 	}
 
@@ -200,7 +200,57 @@ HRESULT CExtra02_Last::Render()
 
 	return S_OK;
 }
+HRESULT CExtra02_Last::Render_Shadow()
+{
+	if (nullptr == m_pModelCom ||
+		nullptr == m_pShaderCom)
+		return E_FAIL;
+	AUTOINSTANCE(CGameInstance, _pInstance);
+	_uint		iNumMeshes;//메쉬 갯수를 알고 메쉬 갯수만큼 렌더를 할 것임. 여기서!
 
+	SetUp_ShaderResources();
+
+	iNumMeshes = m_pModelCom->Get_NumMesh();//메쉬 갯수를 알고 메쉬 갯수만큼 렌더를 할 것임. 여기서!
+
+	for (_uint i = 0; i < iNumMeshes; ++i)
+	{
+		if (FAILED(m_pModelCom->SetUp_OnShader(m_pShaderCom, m_pModelCom->Get_MaterialIndex(i), aiTextureType_DIFFUSE, "g_DiffuseTexture")))
+			return E_FAIL;
+
+		if (FAILED(m_pModelCom->SetUp_OnShader(m_pShaderCom, m_pModelCom->Get_MaterialIndex(i), aiTextureType_NORMALS, "g_NormalTexture")))
+			return E_FAIL;
+
+		_float4 _vCamPosition = _pInstance->Get_CamPosition();
+
+		m_pShaderCom->Set_RawValue("g_vCamPosition", &_vCamPosition, sizeof(_float4));
+
+		DIRLIGHTDESC* _DirLightDesc = _pInstance->Get_DirLightDesc(g_eCurLevel, 0);
+
+
+		if (_pInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_FIRST, CLight_Manager::LIGHT_VIEW) != nullptr)
+		{
+			if (FAILED(m_pShaderCom->Set_RawValue("g_ViewMatrix", _pInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_FIRST, CLight_Manager::LIGHT_VIEW), sizeof(_float4x4))))
+				return E_FAIL;
+			if (FAILED(m_pShaderCom->Set_RawValue("g_ProjMatrix", _pInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_FIRST, CLight_Manager::LIGHT_PROJ), sizeof(_float4x4))))
+				return E_FAIL;
+			if (FAILED(m_pModelCom->Render(m_pShaderCom, 8, i)))
+				return E_FAIL;
+
+			if (_pInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_SECOND, CLight_Manager::LIGHT_VIEW) != nullptr)
+			{
+				if (FAILED(m_pShaderCom->Set_RawValue("g_ViewMatrix2", _pInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_SECOND, CLight_Manager::LIGHT_VIEW), sizeof(_float4x4))))
+					return E_FAIL;
+				if (FAILED(m_pShaderCom->Set_RawValue("g_ProjMatrix2", _pInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_SECOND, CLight_Manager::LIGHT_PROJ), sizeof(_float4x4))))
+					return E_FAIL;
+				if (FAILED(m_pModelCom->Render(m_pShaderCom, 9, i)))
+					return E_FAIL;
+			}
+
+
+		}
+	}
+	return S_OK;
+}
 void CExtra02_Last::PlayAnimation(_float fTimeDelta)
 {
 	if (m_bAnimStop)
@@ -355,6 +405,8 @@ void CExtra02_Last::CheckLimit()
 		if (m_vecLimitTime[LV1Villager_M_Attack01][2] < m_fPlayTime)
 		{
 			m_pParts->Set_CollisionOn(false);
+			if (m_pParts->Trail_GetOn())
+				m_pParts->TrailOff();
 		}
 		else if (m_vecLimitTime[LV1Villager_M_Attack01][1] < m_fPlayTime)
 		{
@@ -375,6 +427,8 @@ void CExtra02_Last::CheckLimit()
 			LookPlayerSlow(0.5f);
 
 			m_pParts->Set_CollisionOn(true);
+			if (!m_pParts->Trail_GetOn())
+				m_pParts->TrailOn();
 		}
 
 		break;
@@ -384,6 +438,8 @@ void CExtra02_Last::CheckLimit()
 		if (m_vecLimitTime[LV1Villager_M_Attack03][0] < m_fPlayTime)
 		{
 			m_pParts->Set_CollisionOn(false);
+			if (m_pParts->Trail_GetOn())
+				m_pParts->TrailOff();
 		}
 		else
 		{
@@ -518,6 +574,9 @@ void CExtra02_Last::RenderGroup()
 
 	m_pRendererCom->Add_RenderGroup(CRenderer::RENDER_NONALPHABLEND, this);
 	m_pRendererCom->Add_RenderGroup(CRenderer::RENDER_NONALPHABLEND, m_pParts);
+
+	m_pRendererCom->Add_RenderGroup(CRenderer::RENDER_SHADOW, this);
+	m_pRendererCom->Add_RenderGroup(CRenderer::RENDER_SHADOW, m_pParts);
 }
 
 _bool CExtra02_Last::Collision(_float fTimeDelta)

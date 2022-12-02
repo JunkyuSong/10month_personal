@@ -61,13 +61,13 @@ HRESULT CCell::Initialize(const _float3 * pPoints, _int iIndex)
 	m_iIndex = iIndex;
 
 #ifdef _DEBUG
-	m_pVIBuffer = CVIBuffer_Cell::Create(m_pDevice, m_pContext, m_vPoints);
+	/*m_pVIBuffer = CVIBuffer_Cell::Create(m_pDevice, m_pContext, m_vPoints);
 	if (nullptr == m_pVIBuffer)
-		return E_FAIL;
+		return E_FAIL;*/
 
-	m_pShader = CShader::Create(m_pDevice, m_pContext, TEXT("../Bin/ShaderFiles/Shader_Cell.hlsl"), VTXCOL_DECLARATION::Elements, VTXCOL_DECLARATION::iNumElements);
+	/*m_pShader = CShader::Create(m_pDevice, m_pContext, TEXT("../Bin/ShaderFiles/Shader_Cell.hlsl"), VTXCOL_DECLARATION::Elements, VTXCOL_DECLARATION::iNumElements);
 	if (nullptr == m_pShader)
-		return E_FAIL;
+		return E_FAIL;*/
 #endif
 
 	return S_OK;
@@ -146,7 +146,7 @@ _bool CCell::isIn(_fvector vPosition, _int * pNeighborIndex, _vector* _vSlide)
 #ifdef _DEBUG
 HRESULT CCell::Render_Cell(_float fHeight, _float4 vColor)
 {
-	CPipeLine*			pPipeLine = GET_INSTANCE(CPipeLine);
+	/*CPipeLine*			pPipeLine = GET_INSTANCE(CPipeLine);
 
 	_float4x4			WorldMatrix;
 	XMStoreFloat4x4(&WorldMatrix, XMMatrixIdentity());
@@ -169,7 +169,7 @@ HRESULT CCell::Render_Cell(_float fHeight, _float4 vColor)
 
 	m_pShader->Begin(0);
 
-	m_pVIBuffer->Render();
+	m_pVIBuffer->Render();*/
 
 	return S_OK;
 }

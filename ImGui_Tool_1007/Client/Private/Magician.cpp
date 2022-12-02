@@ -100,7 +100,7 @@ void CMagician::Tick( _float fTimeDelta)
 			*XMLoadFloat4x4(&_pModelCom->Get_PivotMatrix())*_TargetTrans->Get_WorldMatrix()).r[3];
 		m_pTransformCom->Set_State(CTransform::STATE_POSITION, XMVectorSetW(_vAnimPoint,1.f));
 		m_pTransformCom->LookAt_ForLandObject(_TargetTrans->Get_State(CTransform::STATE_POSITION));
-		_pPlayer->Set_Stage(1);
+		//_pPlayer->Set_Stage(1);
 		m_eMonsterState = ATTACK_DEAD;
 	}
 
@@ -206,6 +206,59 @@ HRESULT CMagician::Render()
 	}*/
 	//m_pNavigationCom->Render();
 
+	return S_OK;
+}
+
+
+HRESULT CMagician::Render_Shadow()
+{
+	if (nullptr == m_pModelCom ||
+		nullptr == m_pShaderCom)
+		return E_FAIL;
+	AUTOINSTANCE(CGameInstance, _pInstance);
+	_uint		iNumMeshes;//메쉬 갯수를 알고 메쉬 갯수만큼 렌더를 할 것임. 여기서!
+
+	SetUp_ShaderResources();
+
+	iNumMeshes = m_pModelCom->Get_NumMesh();//메쉬 갯수를 알고 메쉬 갯수만큼 렌더를 할 것임. 여기서!
+
+	for (_uint i = 0; i < iNumMeshes; ++i)
+	{
+		if (FAILED(m_pModelCom->SetUp_OnShader(m_pShaderCom, m_pModelCom->Get_MaterialIndex(i), aiTextureType_DIFFUSE, "g_DiffuseTexture")))
+			return E_FAIL;
+
+		if (FAILED(m_pModelCom->SetUp_OnShader(m_pShaderCom, m_pModelCom->Get_MaterialIndex(i), aiTextureType_NORMALS, "g_NormalTexture")))
+			return E_FAIL;
+
+		_float4 _vCamPosition = _pInstance->Get_CamPosition();
+
+		m_pShaderCom->Set_RawValue("g_vCamPosition", &_vCamPosition, sizeof(_float4));
+
+		DIRLIGHTDESC* _DirLightDesc = _pInstance->Get_DirLightDesc(g_eCurLevel, 0);
+
+
+		if (_pInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_FIRST, CLight_Manager::LIGHT_VIEW) != nullptr)
+		{
+			if (FAILED(m_pShaderCom->Set_RawValue("g_ViewMatrix", _pInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_FIRST, CLight_Manager::LIGHT_VIEW), sizeof(_float4x4))))
+				return E_FAIL;
+			if (FAILED(m_pShaderCom->Set_RawValue("g_ProjMatrix", _pInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_FIRST, CLight_Manager::LIGHT_PROJ), sizeof(_float4x4))))
+				return E_FAIL;
+			if (FAILED(m_pModelCom->Render(m_pShaderCom, 8, i)))
+				return E_FAIL;
+
+			if (_pInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_SECOND, CLight_Manager::LIGHT_VIEW) != nullptr)
+			{
+				if (FAILED(m_pShaderCom->Set_RawValue("g_ViewMatrix2", _pInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_SECOND, CLight_Manager::LIGHT_VIEW), sizeof(_float4x4))))
+					return E_FAIL;
+				if (FAILED(m_pShaderCom->Set_RawValue("g_ProjMatrix2", _pInstance->Get_LightMatrix(g_eCurLevel, CLight_Manager::LIGHT_SECOND, CLight_Manager::LIGHT_PROJ), sizeof(_float4x4))))
+					return E_FAIL;
+				if (FAILED(m_pModelCom->Render(m_pShaderCom, 9, i)))
+					return E_FAIL;
+			}
+
+
+		}
+	}
 	return S_OK;
 }
 
@@ -1101,6 +1154,7 @@ void CMagician::RenderGroup()
 		}
 
 		m_pRendererCom->Add_RenderGroup(CRenderer::RENDER_NONALPHABLEND, this);
+		m_pRendererCom->Add_RenderGroup(CRenderer::RENDER_SHADOW, this);
 	}
 }
 
@@ -1349,7 +1403,7 @@ HRESULT CMagician::Ready_Components()
 
 	/* For.Com_Status */
 	CStatus::STATUS _tStatus;
-	_tStatus.fMaxHp = 500.f;
+	_tStatus.fMaxHp = 50.f;
 	_tStatus.fAttack = 30.f;
 	_tStatus.fHp = _tStatus.fMaxHp;
 	if (FAILED(__super::Add_Component(LEVEL_STATIC, TEXT("Prototype_Component_Status"), TEXT("Com_Status"), (CComponent**)&m_pStatusCom, &_tStatus)))

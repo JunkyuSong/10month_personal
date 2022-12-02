@@ -196,7 +196,7 @@ HRESULT CBalloon::Render()
 	}
 
 	//if (nullptr != m_pColliderCom[COLLISION_BODY])
-		m_pColliderCom[COLLISION_BODY]->Render();
+		//m_pColliderCom[COLLISION_BODY]->Render();
 
 
 	return S_OK;

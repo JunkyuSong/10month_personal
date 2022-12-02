@@ -37,7 +37,7 @@ HRESULT CExtra02::Initialize_Prototype()
 
 HRESULT CExtra02::Initialize(void * pArg)
 {
-
+	m_eTypeObj = TYPE_MONSTER;
 
 	m_eMonsterType = MONSTER_EXTRA02;
 
@@ -471,6 +471,8 @@ void CExtra02::CheckLimit()
 		if (m_vecLimitTime[LV1Villager_M_Attack01][2] < m_fPlayTime)
 		{
 			m_pParts->Set_CollisionOn(false);
+			if (m_pParts->Trail_GetOn())
+				m_pParts->TrailOff();
 		}
 		else if (m_vecLimitTime[LV1Villager_M_Attack01][1] < m_fPlayTime)
 		{
@@ -489,6 +491,8 @@ void CExtra02::CheckLimit()
 		{
 			LookPlayerSlow(0.5f);
 			m_pParts->Set_CollisionOn(true);
+			if (!m_pParts->Trail_GetOn())
+				m_pParts->TrailOn();
 		}
 
 		break;
@@ -498,6 +502,8 @@ void CExtra02::CheckLimit()
 		if (m_vecLimitTime[LV1Villager_M_Attack03][0] < m_fPlayTime)
 		{
 			m_pParts->Set_CollisionOn(false);
+			if (m_pParts->Trail_GetOn())
+				m_pParts->TrailOff();
 		}
 		else
 		{

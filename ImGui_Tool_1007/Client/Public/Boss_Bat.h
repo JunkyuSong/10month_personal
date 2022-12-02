@@ -66,6 +66,7 @@ public:
 	virtual void Tick(_float fTimeDelta);
 	virtual void LateTick(_float fTimeDelta);
 	virtual HRESULT Render();
+	virtual HRESULT Render_Shadow();
 	void PlayAnimation(_float fTimeDelta);
 
 public:
@@ -126,6 +127,10 @@ private:
 
 	list<class CBat_Dummy*>		m_listMotion;
 	list<class CBat_Dummy*>		m_listDeadMotion;
+
+	CHierarchyNode*				m_pEyes[2];
+	class CCrossTrail*			m_pTrail[2];
+
 
 private:
 	HRESULT Ready_Components();
