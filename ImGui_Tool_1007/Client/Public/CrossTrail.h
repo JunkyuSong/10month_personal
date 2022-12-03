@@ -21,6 +21,8 @@ public:
 		_float4 vRGBA;
 		_float	fWidth = 0.005f;
 		_bool	bLook = false;
+		_float	fMaxTime = 0.8f;
+		_bool	bAlpha = false;
 	};
 public:
 	CCrossTrail(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
@@ -51,12 +53,15 @@ private:
 	vector<_float3>			m_vUp;
 	vector<_float3>			m_vLook;
 
+	vector<_float>			m_vUV;
+
 	CShader*				m_pShaderCom = nullptr;
 	CTransform*				m_pTransCom = nullptr; // 쓸모없는데?
 	CRenderer*				m_pRendererCom = nullptr;
 	CVIBuffer_Point*		m_pVIBufferCom = nullptr;
 
 	_bool					m_bLook = false;
+	_bool					m_bAlpha = false;
 
 private:
 	HRESULT Ready_Components();

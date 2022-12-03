@@ -1996,6 +1996,9 @@ void CPlayer::CheckLimit()
 			{
 				CCrossTrail::CROSS_DESC _tInfo;
 				_tInfo.vRGBA = CLIENT_RGB(255.f, 255.f, 0.f);
+				_tInfo.bLook = true;
+				_tInfo.fWidth = 0.01f;
+				_tInfo.bAlpha = true;
 				m_pClawTrail[NAIL_ONE] = static_cast<CCrossTrail*>(CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_CROSSTRAIL, &(_tInfo)));
 				Safe_AddRef(m_pClawTrail[NAIL_ONE]);
 				_tInfo.vRGBA = CLIENT_RGB(119.f, 255.f, 130.f);

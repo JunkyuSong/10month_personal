@@ -51,19 +51,20 @@ HRESULT CBoss_Bat::Initialize(void * pArg)
 	Ready_LimitTime();
 
 	m_pEyes[0] = m_pModelCom->Get_HierarchyNode("ear_l");
+	Safe_AddRef(m_pEyes[0]);
 	m_pEyes[1] = m_pModelCom->Get_HierarchyNode("ear_r");
-
-	for (_uint i = 0; i < 2; ++i)
-	{
-		Safe_AddRef(m_pEyes[i]);
-	}
+	Safe_AddRef(m_pEyes[1]);
 
 	CCrossTrail::CROSS_DESC _tInfo;
 	_tInfo.vRGBA = CLIENT_RGB(255.f, 0.f, 0.f);
 	_tInfo.fWidth = 0.05f;
 	_tInfo.bLook = true;
+	_tInfo.fMaxTime = 0.5f;
+	_tInfo.bAlpha = true;
 	m_pTrail[0] = static_cast<CCrossTrail*>(CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_CROSSTRAIL, &(_tInfo)));
+	Safe_AddRef(m_pTrail[0]);
 	m_pTrail[1] = static_cast<CCrossTrail*>(CEffect_Mgr::Get_Instance()->Add_Effect(CEffect_Mgr::EFFECT_CROSSTRAIL, &(_tInfo)));
+	Safe_AddRef(m_pTrail[1]);
 
 	m_pTransformCom->Rotation(XMVectorSet(0.f, 1.f, 0.f, 0.f), XMConvertToRadians(180.f));
 	m_pTransformCom->Set_State(CTransform::STATE_POSITION, XMVectorSet(30.672f, 0.f, 50.622f, 1.f));
@@ -121,7 +122,10 @@ void CBoss_Bat::Tick(_float fTimeDelta)
 		* XMLoadFloat4x4(&m_pModelCom->Get_PivotMatrix())
 		* m_pTransformCom->Get_WorldMatrix();
 	_float3 _vPos;
-	WeaponMatrix.r[3] += XMVector3Normalize(WeaponMatrix.r[1]) * 0.5f;
+	WeaponMatrix.r[3] +=
+		XMVector3Normalize(WeaponMatrix.r[1]) * 0.55f
+		- XMVector3Normalize(WeaponMatrix.r[0]) * 0.1f
+		- XMVector3Normalize(WeaponMatrix.r[2]) * 0.f;
 	XMStoreFloat3(&_vPos, WeaponMatrix.r[3]);
 	m_pTrail[0]->Add_Point(_vPos);
 
@@ -130,7 +134,10 @@ void CBoss_Bat::Tick(_float fTimeDelta)
 		m_pEyes[1]->Get_CombinedTransformation()
 		* XMLoadFloat4x4(&m_pModelCom->Get_PivotMatrix())
 		* m_pTransformCom->Get_WorldMatrix();
-	WeaponMatrix.r[3] += XMVector3Normalize(WeaponMatrix.r[1]) * 0.5f;
+	WeaponMatrix.r[3] += 
+		XMVector3Normalize(WeaponMatrix.r[1]) * 0.55f
+		- XMVector3Normalize(WeaponMatrix.r[0]) * 0.1f
+		- XMVector3Normalize(WeaponMatrix.r[2]) * 0.f;
 	XMStoreFloat3(&_vPos, WeaponMatrix.r[3]);
 	m_pTrail[1]->Add_Point(_vPos);
 
@@ -1317,7 +1324,8 @@ void CBoss_Bat::Free()
 
 	for (_uint i = 0; i < 2; ++i)
 	{
-		Safe_Release(m_pEyes[i]);
+		Safe_Release(m_pEyes[i]); 
+		Safe_Release(m_pTrail[i]);
 	}
 }
 

@@ -5,6 +5,9 @@ texture2D	g_DiffuseTexture;
 texture2D	g_NoiseTexture;
 
 float3		g_Right, g_Up, g_Look;
+float3		g_Right1, g_Up1;
+float3		g_Right2, g_Up2;
+float		g_Uv1, g_Uv2;
 float		g_Width;
 float3		g_vPos_1;
 float3		g_vPos_2;
@@ -156,6 +159,60 @@ void GS_MAIN(point GS_IN In[1], inout TriangleStream<GS_OUT> GeometryStream)
 }
 
 [maxvertexcount(12)]
+void GS_MAIN2(point GS_IN In[1], inout TriangleStream<GS_OUT> GeometryStream)
+{
+	GS_OUT			Out[8];
+	matrix			matVP = mul(g_ViewMatrix, g_ProjMatrix);
+
+	Out[0].vPosition = mul(vector(g_vPos_2 - (g_Right2 * g_Width), 1.f), matVP);
+	Out[0].vTexUV = float2(g_Uv2, 0.f);
+
+	Out[1].vPosition = mul(vector(g_vPos_2 + (g_Right2 * g_Width), 1.f), matVP);
+	Out[1].vTexUV = float2(g_Uv2, 1.f);
+
+	Out[2].vPosition = mul(vector(g_vPos_1 + (g_Right1 * g_Width), 1.f), matVP);
+	Out[2].vTexUV = float2(g_Uv1, 1.f);
+
+	Out[3].vPosition = mul(vector(g_vPos_1 - (g_Right1 * g_Width), 1.f), matVP);
+	Out[3].vTexUV = float2(g_Uv1, 0.f);
+
+	GeometryStream.Append(Out[0]);
+	GeometryStream.Append(Out[1]);
+	GeometryStream.Append(Out[2]);
+	GeometryStream.RestartStrip();
+
+	GeometryStream.Append(Out[0]);
+	GeometryStream.Append(Out[2]);
+	GeometryStream.Append(Out[3]);
+	GeometryStream.RestartStrip();
+
+
+
+	Out[4].vPosition = mul(vector(g_vPos_1 + (g_Up1 * g_Width), 1.f), matVP);
+	Out[4].vTexUV = float2(g_Uv1, 1.f);
+
+	Out[5].vPosition = mul(vector(g_vPos_2 + (g_Up2 * g_Width), 1.f), matVP);
+	Out[5].vTexUV = float2(g_Uv2, 1.f);
+
+	Out[6].vPosition = mul(vector(g_vPos_2 - (g_Up2 * g_Width), 1.f), matVP);
+	Out[6].vTexUV = float2(g_Uv2, 0.f);
+
+	Out[7].vPosition = mul(vector(g_vPos_1 - (g_Up1 * g_Width), 1.f), matVP);
+	Out[7].vTexUV = float2(g_Uv1, 0.f);
+
+	GeometryStream.Append(Out[4]);
+	GeometryStream.Append(Out[5]);
+	GeometryStream.Append(Out[6]);
+	GeometryStream.RestartStrip();
+
+
+	GeometryStream.Append(Out[4]);
+	GeometryStream.Append(Out[6]);
+	GeometryStream.Append(Out[7]);
+	GeometryStream.RestartStrip();
+}
+
+[maxvertexcount(6)]
 void GS_ARROW(point GS_IN In[1], inout TriangleStream<GS_OUT> GeometryStream)
 {
 	GS_OUT			Out[8];
@@ -182,43 +239,6 @@ void GS_ARROW(point GS_IN In[1], inout TriangleStream<GS_OUT> GeometryStream)
 	GeometryStream.Append(Out[2]);
 	GeometryStream.Append(Out[3]);
 	GeometryStream.RestartStrip();
-
-
-
-	//Out[4].vPosition = mul(vector(g_vPos_1 + (g_Up * g_Width), 1.f), matVP);
-	//Out[4].vTexUV = float2(0.f, 1.f);
-
-	//Out[5].vPosition = mul(vector(g_vPos_2 + (g_Up * g_Width), 1.f), matVP);
-	//Out[5].vTexUV = float2(0.f, 0.f);
-
-	//Out[6].vPosition = mul(vector(g_vPos_2 - (g_Up * g_Width), 1.f), matVP);
-	//Out[6].vTexUV = float2(1.f, 0.f);
-
-	//Out[7].vPosition = mul(vector(g_vPos_1 - (g_Up * g_Width), 1.f), matVP);
-	//Out[7].vTexUV = float2(1.f, 1.f);
-
-	////Out[4].vPosition = mul(vector(g_PointList.vPos[0] + vector(g_Up * g_Width,1.f)), matVP);
-	////Out[4].vTexUV = float2(0.f, 0.f);
-
-	////Out[5].vPosition = mul(vector(g_PointList.vPos[1] + vector(g_Up * g_Width,1.f)), matVP);
-	////Out[5].vTexUV = float2(1.f, 0.f);
-
-	////Out[6].vPosition = mul(vector(g_PointList.vPos[1] - vector(g_Up * g_Width,1.f)), matVP);
-	////Out[6].vTexUV = float2(1.f, 1.f);
-
-	////Out[7].vPosition = mul(vector(g_PointList.vPos[0] - vector(g_Up * g_Width,1.f)), matVP);
-	////Out[7].vTexUV = float2(0.f, 1.f);
-
-	//GeometryStream.Append(Out[4]);
-	//GeometryStream.Append(Out[5]);
-	//GeometryStream.Append(Out[6]);
-	//GeometryStream.RestartStrip();
-
-
-	//GeometryStream.Append(Out[4]);
-	//GeometryStream.Append(Out[6]);
-	//GeometryStream.Append(Out[7]);
-	//GeometryStream.RestartStrip();
 }
 
 [maxvertexcount(6)]
@@ -316,6 +336,18 @@ PS_OUT PS_CROSSTRAIL(PS_IN In)
 	PS_OUT		Out = (PS_OUT)0;
 
 	Out.vColor = g_Color;
+	if (0 >= Out.vColor.a)
+		discard;
+	//Out.vColor = pow(Out.vColor, 2.2f);
+	return Out;
+}
+
+PS_OUT PS_CROSSTRAIL_ALPHA(PS_IN In)
+{
+	PS_OUT		Out = (PS_OUT)0;
+
+	Out.vColor = g_Color;
+	Out.vColor.a = In.vTexUV.x;
 	if (0 >= Out.vColor.a)
 		discard;
 	//Out.vColor = pow(Out.vColor, 2.2f);
@@ -500,5 +532,15 @@ technique11 DefaultTechnique
 		VertexShader = compile vs_5_0 VS_PARTICLE();
 		GeometryShader = compile gs_5_0 GS_PARTICLE();
 		PixelShader = compile ps_5_0 PS_FLARE();
+	}
+
+	pass CROSSTRAIL_LOOK
+	{
+		SetRasterizerState(RS_CullNone);
+		SetDepthStencilState(DSS_Default, 0);
+		SetBlendState(BS_AlphaBlend, float4(0.f, 0.f, 0.f, 0.f), 0xffffffff);
+		VertexShader = compile vs_5_0 VS_MAIN();
+		GeometryShader = compile gs_5_0 GS_MAIN2();
+		PixelShader = compile ps_5_0 PS_CROSSTRAIL_ALPHA();
 	}
 }
