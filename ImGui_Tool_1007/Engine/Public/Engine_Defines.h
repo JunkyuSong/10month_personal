@@ -34,7 +34,7 @@ using namespace DirectX;
 #include <map>
 #include <set>
 #include <algorithm>
-#include <typeinfo.h>
+//#include <typeinfo.h>
 
 
 #include <process.h>
